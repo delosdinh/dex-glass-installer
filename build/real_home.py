@@ -22,7 +22,8 @@ ROWS = (
     ("Recommended for You", "action=lib_because&media=movie", "poster"),
     ("Dex Collections", "collections:static", "wide"),
 )
-IDS = tuple(5101+i for i in range(len(ROWS)))
+CUSTOM_SLOTS = 4
+IDS = tuple(5101+i for i in range(len(ROWS)+CUSTOM_SLOTS))
 
 
 def el(parent, tag, value=None, **attrs):
@@ -171,13 +172,13 @@ def shelf(parent, index, title, query, shape):
         # screen from static, focusable collection cards instead.
         content=el(view,"content")
         shortcuts=(
-            ("Kaptain / Dex Collection", "Browse the prebuilt collection", "kaptain",
-             "RunPlugin(plugin://plugin.video.dexhub/?action=home_community)"),
-            ("Dex Community", "Browse community groups and folders", "community",
-             "RunPlugin(plugin://plugin.video.dexhub/?action=home_community)"),
-            ("Organise Home Rows", "Arrange your collections in Dex Hub", "organise",
-             "RunPlugin(plugin://plugin.video.dexhub/?action=home_layout)"),
-            ("Import Collections", "Manage and add collection sources", "imports",
+            ("Kaptain / Dex Collection", "Add its catalogues to Dex Glass", "kaptain",
+             "RunPlugin(plugin://plugin.video.dexglass.bridge/?action=add)"),
+            ("Customise My Collections", "Edit rows in Dex Glass, not Dex Hub", "community",
+             "RunPlugin(plugin://plugin.video.dexglass.bridge/?action=configure)"),
+            ("Arrange Dex Glass Rows", "Move or remove pinned catalogues", "organise",
+             "RunPlugin(plugin://plugin.video.dexglass.bridge/?action=configure)"),
+            ("Open Dex Community", "Optional original Dex Hub collection browser", "imports",
              "RunPlugin(plugin://plugin.video.dexhub/?action=home_community)"),
         )
         for k,(name,subtitle,art,action) in enumerate(shortcuts,1):
@@ -188,6 +189,9 @@ def shelf(parent, index, title, query, shape):
             el(item,"onclick",action)
     elif query.startswith("bridge:"):
         el(view,"content",BRIDGE+"?media="+query.split(":",1)[1],
+           target="videos",limit="30",browse="never")
+    elif query.startswith("slot:"):
+        el(view,"content",BRIDGE+"?action=slot&slot="+query.split(":",1)[1],
            target="videos",limit="30",browse="never")
     else:
         el(view,"content",DEX+"?"+query,target="videos",limit="30",browse="never")
@@ -242,7 +246,7 @@ def create_home():
         (1001,515,166,"Watch Now","SetFocus(5101)"),
         (1002,684,136,"Movies",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/?action=nuvio_home_media&media=movie",return)'),
         (1003,824,148,"TV Shows",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/?action=nuvio_home_media&media=series",return)'),
-        (1004,980,195,"Collections","RunPlugin(plugin://plugin.video.dexhub/?action=home_community)"),
+        (1004,980,195,"Collections","RunPlugin(plugin://plugin.video.dexglass.bridge/?action=configure)"),
         (1005,1177,167,"Dex Hub",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/",return)'),
         (1006,1538,96,"Search","RunPlugin(plugin://plugin.video.dexhub/?action=home_search)"),
         (1007,1644,96,"Settings","ActivateWindow(SkinSettings)"),
@@ -276,6 +280,14 @@ def create_home():
     el(shelves,"usecontrolcoords","true")
     for i,(title,query,shape) in enumerate(ROWS):
         shelf(shelves,i,title,query,shape)
+    # Four real, user-configurable collection shelves, populated by the
+    # bridge from selected Kaptain/Dex Community catalogue paths. The
+    # separate Kodi Skin.String values make empty slots disappear completely.
+    for i in range(CUSTOM_SLOTS):
+        slot=i+1
+        title="$INFO[Skin.String(DexGlass.Collection.%d.Title)]" % slot
+        custom=shelf(shelves,len(ROWS)+i,title,"slot:%d"%slot,"poster")
+        el(custom,"visible","Skin.String(DexGlass.Collection.%d.Title)"%slot)
     label(controls,1140,568,680,45,
           "ARROWS  BROWSE    •    OK  OPEN    •    BACK  MENU",
           "font20_title","CCDBE6F5",align="right")
@@ -301,13 +313,19 @@ def check_home(data):
     if not expected.issubset(ids):raise ValueError("Missing one or more Dex Hub shelves")
     paths=[n.text for n in root.iter("content") if n.text and
            (DEX in n.text or BRIDGE in n.text)]
-    if len(paths)!=6:raise ValueError(f"Expected 6 live rows and 1 static collection, found {len(paths)}")
+    expected_feeds=6+CUSTOM_SLOTS
+    if len(paths)!=expected_feeds:
+        raise ValueError(f"Expected {expected_feeds} feeds including custom slots, found {len(paths)}")
     bridges=[p for p in paths if p.startswith(BRIDGE)]
-    if len(bridges)!=2:raise ValueError("Expected separate film and episode feeds")
+    if len(bridges)!=2+CUSTOM_SLOTS:raise ValueError("Missing film, episode or custom Kaptain feeds")
     items=[n for n in root.iter("item") if n.find("onclick") is not None]
-    if len(items)<3:raise ValueError("Kaptain/Community shortcuts are missing")
-    if not any("home_community" in (x.findtext("onclick") or "") for x in items):
-        raise ValueError("Kaptain collection browser is not linked")
+    if len(items)!=4:raise ValueError("Dex Glass Collections chooser cards missing")
+    if not any("dexglass.bridge/?action=add" in (x.findtext("onclick") or "") for x in items):
+        raise ValueError("Kaptain picker isn't linked into Dex Glass")
+    for n in range(1,CUSTOM_SLOTS+1):
+        if not any("Skin.String(DexGlass.Collection.%d.Title)"%n in
+                   (element.text or "") for element in root.iter("visible")):
+            raise ValueError("Custom slot %d visibility isn't wired to skin settings" % n)
     utility_icons=[n.text for n in root.iter("texture") if (n.text or "").startswith("dexglass/icon-")]
     if len(utility_icons)!=3:raise ValueError("Top-right icon artwork missing")
     fanart=[n for n in root.iter("texture") if n.text=="$VAR[DG_Fanart]"]
