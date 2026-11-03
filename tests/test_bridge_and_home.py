@@ -58,12 +58,31 @@ class HomeContractTests(unittest.TestCase):
         root=ET.fromstring(data)
         self.assertEqual(len(list(root.iter("item"))),4)
         feeds=[x.text for x in root.iter("content") if (x.text or "").startswith("plugin://")]
-        self.assertEqual(sum("dexglass.bridge" in x for x in feeds),2)
-        self.assertEqual(len(feeds),6)
+        self.assertEqual(sum("dexglass.bridge" in x for x in feeds),6)
+        self.assertEqual(len(feeds),10)
         onclick=[x.text or "" for x in root.iter("onclick")]
-        self.assertTrue(any("home_community" in x for x in onclick))
+        self.assertTrue(any("dexglass.bridge/?action=add" in x for x in onclick))
         self.assertTrue(any("ActivateWindow(ShutdownMenu)" in x for x in onclick))
         self.assertEqual(len([x for x in root.iter("texture") if (x.text or "").startswith("dexglass/icon-")]),3)
+        self.assertNotIn(b"DEX  GLASS",data)
+        from real_home import create_variables
+        variables=create_variables()
+        self.assertIn(b"tvshow.clearlogo",variables)
+        self.assertIn(b"Property(clearlogo)",variables)
+        self.assertIn(b"Skin.String(DexGlass.Collection.1.Title)",data)
+
+    def test_original_skin_settings(self):
+        from dexglass_settings import create_settings
+        data=create_settings()
+        self.assertIn(b"Dex Glass",data)
+        self.assertIn(b"plugin.video.dexglass.bridge",data)
+        self.assertNotIn(b"Customize Watch Now",data)
+
+    def test_selected_catalogue_url_is_bounded(self):
+        sys.path.insert(0,str(ROOT/"bridge"))
+        import custom_collections as cc
+        self.assertIsNone(cc.current_slot(0))
+        self.assertIsNone(cc.current_slot(999))
 
 if __name__ == "__main__":
     unittest.main()
