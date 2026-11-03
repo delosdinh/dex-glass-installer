@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon id="plugin.video.dexglass.bridge" name="Dex Glass Media Bridge" version="0.1.0" provider-name="Dex Glass">
+<addon id="plugin.video.dexglass.bridge" name="Dex Glass Media Bridge" version="0.2.0" provider-name="Dex Glass">
   <requires>
     <import addon="xbmc.python" version="3.0.0" />
     <import addon="plugin.video.dexhub" version="5.10.0" optional="true" />
@@ -8,8 +8,8 @@
     <provides>video</provides>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <summary lang="en_GB">Read-only Dex Hub widget organiser for Dex Glass</summary>
-    <description lang="en_GB">Filters the public Dex Hub Continue Watching listings into film and episode rows. Uses the official installed Dex Hub plugin and Kodi JSON-RPC without copying Dex Hub code or credentials.</description>
+    <summary lang="en_GB">Dex Glass collection customiser and widget organiser</summary>
+    <description lang="en_GB">Filters Dex Hub Continue Watching and lets Dex Glass users choose, order and remove Kaptain catalogues as native skin rows. Reads the installed Dex Hub group index at runtime, without redistributing its code or changing its settings.</description>
     <platform>all</platform>
     <license>MIT (original Dex Glass bridge code only)</license>
     <source>https://github.com/delosdinh/dex-glass-installer</source>
