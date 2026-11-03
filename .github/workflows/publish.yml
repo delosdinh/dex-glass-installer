@@ -9,6 +9,7 @@ on:
       - ".github/workflows/publish.yml"
       - "build/build_skin.py"
       - "build/liquid_glass.py"
+      - "build/real_home.py"
       - "tools/generate_assets.py"
       - "installer/generate_repo.py"
       - "README.md"
@@ -52,10 +53,14 @@ jobs:
           out = Path("dist/site")
           root = ET.parse(out / "addons.xml").getroot()
           assert {addon.attrib["id"] for addon in root} == {"skin.dexglass", "repository.dexglass"}
-          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.2.0.zip") as z:
+          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.3.0.zip") as z:
               assert z.testzip() is None
               assert ET.fromstring(z.read("skin.dexglass/addon.xml")).get("id") == "skin.dexglass"
-          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.2.zip") as z:
+              home = ET.fromstring(z.read("skin.dexglass/xml/Home.xml"))
+              rails=[e for e in home.iter("content") if (e.text or "").startswith("plugin://plugin.video.dexhub/")]
+              assert len(rails)==7, len(rails)
+              assert z.read("skin.dexglass/xml/DexGlass_Variables.xml").count(b"DG_Fanart")>0
+          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.3.zip") as z:
               assert z.testzip() is None
           print("Validated ZIP and metadata for GitHub Pages")
           PY
