@@ -14,11 +14,11 @@ import zipfile
 
 HOST = "https://delosdinh.github.io/dex-glass-installer/"
 REPO_ID = "repository.dexglass"
-REPO_VERSION = "1.0.5"
+REPO_VERSION = "1.0.6"
 SKIN_ID = "skin.dexglass"
-SKIN_VERSION = "0.5.0"
+SKIN_VERSION = "0.6.0"
 BRIDGE_ID = "plugin.video.dexglass.bridge"
-BRIDGE_VERSION = "0.2.0"
+BRIDGE_VERSION = "0.3.0"
 
 def element_bytes(node):
     return ET.tostring(node, encoding="utf-8", xml_declaration=True)
@@ -86,7 +86,7 @@ def build(skin_zip, out):
     bridge_name = BRIDGE_ID + "-" + BRIDGE_VERSION + ".zip"
     bridge_zip = bridge_out / bridge_name
     with zipfile.ZipFile(bridge_zip, "w", compression=zipfile.ZIP_DEFLATED) as z:
-        for name in ("addon.xml", "default.py", "custom_collections.py", "LICENSE"):
+        for name in ("addon.xml", "default.py", "custom_collections.py", "home_config.py", "search.py", "service.py", "LICENSE"):
             z.write(bridge_dir / name, BRIDGE_ID + "/" + name)
     shutil.copy2(bridge_zip, out / bridge_name)
     with zipfile.ZipFile(bridge_zip) as z:
@@ -163,5 +163,5 @@ def build(skin_zip, out):
     print("Publish at:", HOST)
 
 if __name__ == "__main__":
-    build(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("dist/skin.dexglass-0.5.0.zip"),
+    build(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("dist/skin.dexglass-0.6.0.zip"),
           Path(sys.argv[2]) if len(sys.argv) > 2 else Path("dist/site"))
