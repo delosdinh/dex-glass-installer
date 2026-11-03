@@ -14,9 +14,9 @@ import zipfile
 
 HOST = "https://delosdinh.github.io/dex-glass-installer/"
 REPO_ID = "repository.dexglass"
-REPO_VERSION = "1.0.6"
+REPO_VERSION = "1.0.7"
 SKIN_ID = "skin.dexglass"
-SKIN_VERSION = "0.6.0"
+SKIN_VERSION = "0.6.1"
 BRIDGE_ID = "plugin.video.dexglass.bridge"
 BRIDGE_VERSION = "0.3.0"
 
@@ -163,5 +163,5 @@ def build(skin_zip, out):
     print("Publish at:", HOST)
 
 if __name__ == "__main__":
-    build(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("dist/skin.dexglass-0.6.0.zip"),
+    build(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("dist/skin.dexglass-0.6.1.zip"),
           Path(sys.argv[2]) if len(sys.argv) > 2 else Path("dist/site"))
