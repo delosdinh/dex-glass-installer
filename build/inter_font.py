@@ -26,6 +26,9 @@ def get(filename):
 def main():
     raw=get("Inter[opsz,wght].ttf")
     license_text=get("OFL.txt")
+    expected="29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+    if hashlib.sha256(raw).hexdigest()!=expected:
+        raise ValueError("Inter font source hash did not match pinned Google Fonts version")
     if not raw.startswith(b"\x00\x01\x00\x00") or len(raw)<100000:
         raise ValueError("Unexpected Inter TrueType download")
     if b"SIL OPEN FONT LICENSE" not in license_text.upper():
