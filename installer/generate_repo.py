@@ -89,16 +89,19 @@ def build(skin_zip, out):
         '<title>Index of /dex-glass-installer/ - Dex Glass Kodi Repository</title>'
         '<style>body{font:16px/1.65 system-ui,sans-serif;background:#090f1c;'
         'color:#f0f6ff;max-width:790px;margin:9vh auto;padding:24px}'
-        'a{color:#a8d8ff}pre{padding:18px;background:#15223c;overflow-x:auto;'
-        'border:1px solid #41506c;border-radius:12px;line-height:2.4}'
-        'small{color:#acb8d0}code{color:#e1ecff}</style></head><body>'
+        'a{color:#a8d8ff}table{border-collapse:collapse;width:100%;'
+        'background:#15223c}td{border:1px solid #41506c;'
+        'padding:14px 12px}small{color:#acb8d0}code{color:#e1ecff}'
+        '</style></head><body>'
         '<h1>Index of /dex-glass-installer/</h1>'
         '<p>Dex Glass - experimental Kodi skin repository. '
         'The proprietary Dex Hub add-on is not bundled.</p>'
-        '<pre>'
-        '<a href="' + repo_name + '">' + repo_name + '</a>    Repository installer ZIP\n'
-        '<a href="' + skin_name + '">' + skin_name + '</a>    Direct skin ZIP\n'
-        '</pre>'
+        '<table>'
+        '<tr><td><a href="' + repo_name + '">' + repo_name + '</a></td>'
+        '<td>Repository installer ZIP</td></tr>'
+        '<tr><td><a href="' + skin_name + '">' + skin_name + '</a></td>'
+        '<td>Direct skin ZIP</td></tr>'
+        '</table>'
         '<p>In Kodi, add <code>' + HOST + '</code> as a File Manager source, '
         'then choose <strong>Install from ZIP file</strong> and select '
         '<code>' + repo_name + '</code>.</p>'
@@ -109,6 +112,16 @@ def build(skin_zip, out):
         'Not affiliated with Apple, Pyrus, DexWorld or Kodi.</small></p>'
         '</body></html>'
     )
+    # Reproduce Kodi CHTTPDirectory's restrictive anchor matching so
+    # future styling edits cannot silently make ZIPs invisible in Kodi.
+    import re
+    parsed = re.findall(
+        r'<a href="([^"]*)"[^>]*>\\s*(.*?)\\s*</a>(.+?)(?=<a|</tr|$)',
+        index, flags=re.IGNORECASE
+    )
+    visible = {href for href, label, _ in parsed if href == label.strip()}
+    if {repo_name, skin_name} != visible:
+        raise ValueError("Website HTML directory links are not Kodi-compatible: " + str(visible))
     (out / "index.html").write_text(index, encoding="utf-8")
     (out / "README.txt").write_text(
         "Generated GitHub Pages Kodi repository. No Dex Hub code or accounts.\n", encoding="utf-8"
