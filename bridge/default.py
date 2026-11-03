@@ -57,11 +57,16 @@ def read_continue():
     last = None
     for media, fields in variants:
         try:
-            return rpc(SOURCE, media, fields)
+            found = rpc(SOURCE, media, fields)
+            # Kodi builds differ: some successfully return an empty video
+            # list for plugin:// while the "files" mode contains the items.
+            if found:
+                return found
         except Exception as exc:
             last = exc
-    log("Kodi could not read the Dex Hub Continue Watching listing: %s" % last,
-        xbmc.LOGWARNING)
+    if last:
+        log("Kodi could not read all Dex Hub listing modes: %s" % last,
+            xbmc.LOGWARNING)
     return []
 
 
