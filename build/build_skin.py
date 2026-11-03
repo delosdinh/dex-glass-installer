@@ -10,6 +10,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
 from real_home import create_home, create_variables, patch_includes, check_home
+from dexglass_settings import create_settings
 
 URL = "https://github.com/kamilfotoveci-design/applify/releases/download/v1.1.6/skin.applify-1.1.6.zip"
 EXPECTED = "2e36befee29fa4f904f7a4e27d85779a504e23a963c646224019dc98e6a7cd9c"
@@ -34,14 +35,14 @@ def addon_xml(data):
         raise ValueError("Not the expected Pyrus skin")
     element.attrib.update({"id":"skin.dexglass",
                            "name":"Dex Glass (Preview)",
-                           "version":"0.4.0",
+                           "version":"0.5.0",
                            "provider-name":"Dex Glass; based on Pyrus by kamilwhoo"})
     requirements = element.find("requires")
     if requirements is None:
         requirements = ET.Element("requires")
         element.insert(0,requirements)
     ET.SubElement(requirements, "import", {
-        "addon":"plugin.video.dexglass.bridge", "version":"0.1.0"
+        "addon":"plugin.video.dexglass.bridge", "version":"0.2.0"
     })
     meta = element.find("extension[@point='xbmc.addon.metadata']")
     if meta is not None:
@@ -90,6 +91,8 @@ def build(source, dest, assets):
                 data = create_home()
             elif name == "xml/Includes.xml":
                 data = patch_includes(data)
+            elif name == "xml/SkinSettings.xml":
+                data = create_settings()
             elif name == "xml/Font.xml":
                 data = data.replace(b"sf-pro-display-regular.ttf", b"OrchardUI-Regular.ttf")
                 data = data.replace(b"sf-pro-display-semibold.ttf", b"OrchardUI-Semibold.ttf")
@@ -103,31 +106,36 @@ def build(source, dest, assets):
     if missing:
         raise ValueError("Missing source files: " + ", ".join(missing))
     check_home(files["xml/Home.xml"])
+    if b"plugin.video.dexglass.bridge" not in files["xml/SkinSettings.xml"]:
+        raise ValueError("Pyrus settings were not replaced with Dex Glass settings")
     if assets.is_dir():
         count = 0
         for asset in assets.rglob("*.png"):
             files["media/dexglass/" + asset.relative_to(assets).as_posix()] = asset.read_bytes()
             count += 1
         print("Included original Dex Glass assets:", count)
-    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass original Home preview v0.4.0
+    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass original Home preview v0.5.0
 
-Kodi Home.xml has been replaced with a newly authored 1920x1080 TV interface:
-a centred clear-glass navigation menu with working utility icons, full-screen focus-responsive fanart,
-and seven horizontal rails in the requested order. Movie/episode Continue Watching
-are filtered by the original separate Dex Glass bridge plugin via Kodi JSON-RPC.
-The Kaptain collection rail opens Dex Hub's native Dex Community screen.
-The original Pyrus Home.xml has NOT been reused. Other Kodi windows and
-fonts remain based on the Pyrus/Estuary framework, with licences preserved.
+This skin has an original cinematic Home.xml and now an original Kodi
+SkinSettings.xml; no Pyrus home editor is exposed to users of Dex Glass.
+The official Dex Hub package is never modified.
 
-The plugin URLs are public entrypoints of the separately installed official
-Dex Hub add-on; no Dex Hub source, assets, credentials, or authentication are
-included in this package. Film/episode details and playback actions are
-provided by the official add-on when its native list items are selected.
+Use Dex Glass Settings > Add/replace Kaptain catalogue to select a
+group > folder > catalogue from the installed official Dex Hub data.
+The separate Dex Glass Media Bridge (plugin.video.dexglass.bridge v0.2.0)
+saves selections exclusively in its own Kodi profile and sets per-skin
+visibility strings. The custom Kaptain rails feed real Kodi widgets
+through the selected official Dex Hub public catalogue routes.
+Four custom rails are available after the seven pre-existing home rows.
 
-Requires plugin.video.dexglass.bridge version 0.1.0, installed separately.
-Unverified: how Kodi JSON-RPC classifies all Dex Hub items on this device,
-remote directional navigation, item art quality, and CoreELEC playback. Do not rely on this build as a full replacement yet.
-For fallback use Settings > Interface > Skin to restore your previous skin.
+This is experimental: Dex Hub's community.groups() Python API is an
+internal module read ONLY at runtime from the installed add-on. If a
+Dex Hub update changes it, the picker will display an explicit warning.
+Kaptain widget loading via Kodi JSON-RPC needs CoreELEC testing;
+a failed catalogue has a clickable fallback to its official route.
+
+Pyrus/Estuary remains a licensed base for secondary Kodi windows.
+Keep your prior skin installed and switch back from Kodi Interface > Skin.
 """
     # Pyrus diagnostics reference this manifest; recalculate for modified files.
     manifest_name = "resources/package-sha256.json"
@@ -157,7 +165,7 @@ For fallback use Settings > Interface > Skin to restore your previous skin.
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", help="Local official Pyrus v1.1.6 ZIP; optional in GitHub Actions")
-    parser.add_argument("--output", default="dist/skin.dexglass-0.4.0.zip")
+    parser.add_argument("--output", default="dist/skin.dexglass-0.5.0.zip")
     parser.add_argument("--assets", default="build/media/dexglass")
     args = parser.parse_args()
     build(source_zip(args.source), Path(args.output), Path(args.assets))
