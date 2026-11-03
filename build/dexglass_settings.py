@@ -42,26 +42,30 @@ def create_settings():
     _image(ctrls,0,0,1920,1080,"dexglass/hero-scrim.png")
     _label(ctrls,95,88,1650,90,"Dex Glass  |  Customise Home","font60")
     _label(ctrls,102,175,1560,60,
-           "Your collections change this skin only — not Dex Hub's homepage.",
+           "Your row layout belongs to Dex Glass — not the Dex Hub skin.",
            "font25_title","FFD5E7F6")
 
     buttons=[
-        ("Add / replace Kaptain catalogue",
-         "RunPlugin(plugin://plugin.video.dexglass.bridge/?action=add)"),
-        ("Manage Dex Glass home rows",
+        ("Customise All Hub Rows",
          "RunPlugin(plugin://plugin.video.dexglass.bridge/?action=configure)"),
-        ("Official Dex Hub add-on settings",
+        ("Add a New Row",
+         "RunPlugin(plugin://plugin.video.dexglass.bridge/?action=add)"),
+        ("Reset One Hub to Defaults",
+         "RunPlugin(plugin://plugin.video.dexglass.bridge/?action=reset)"),
+        ("Search Films and Series",
+         "RunPlugin(plugin://plugin.video.dexglass.bridge/?action=search)"),
+        ("Official Dex Hub Add-on Settings",
          "Addon.OpenSettings(plugin.video.dexhub)"),
-        ("Kodi settings",
+        ("Kodi System Settings",
          "ActivateWindow(Settings)"),
         ("Back to Dex Glass",
          "PreviousMenu"),
     ]
     for index,(title,action) in enumerate(buttons):
         bid=101+index
-        y=284+index*105
+        y=274+index*92
         c=_el(ctrls,"control",type="button",id=str(bid))
-        for tag,value in (("left",100),("top",y),("width",900),("height",85)):
+        for tag,value in (("left",100),("top",y),("width",900),("height",75)):
             _el(c,tag,value)
         _el(c,"label",title)
         _el(c,"font","font36_title")
@@ -77,13 +81,12 @@ def create_settings():
         _el(c,"ondown",str(101+(index+1)%len(buttons)))
         _el(c,"onleft",str(bid))
         _el(c,"onright",str(bid))
-    _label(ctrls,1070,315,720,55,"Pinned Kaptain rows","font36_title")
-    for n in range(1,5):
-        _label(ctrls,1070,390+(n-1)*74,775,56,
-               "%d. $INFO[Skin.String(DexGlass.Collection.%d.Title)]" % (n,n),
-               "font25_title","FFE7ECFF")
-    _label(ctrls,1080,785,700,110,
-           "Choose Add / replace to pick a Kaptain group, folder and catalogue.",
+    _label(ctrls,1070,315,720,55,"Independent Kodi hubs","font36_title")
+    for n,page in enumerate(("Watch Now","Movies","TV Shows","Collections")):
+        _label(ctrls,1070,395+n*78,775,58,page,
+               "font32_title","FFE7ECFF")
+    _label(ctrls,1070,745,700,180,
+           "12 configurable slots per hub. Choose built-in feeds or Kaptain catalogues. Reorder, replace or remove rows without changing Dex Hub.",
            "font20_title","FFD5E7F6")
     ET.indent(root,space="  ")
     data=ET.tostring(root,encoding="utf-8",xml_declaration=True)
