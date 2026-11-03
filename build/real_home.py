@@ -213,8 +213,20 @@ def create_variables():
     for key in props:
         var=el(root,"variable",name="DG_"+key)
         for i,ident in enumerate(IDS,1):
-            value=f"$INFO[Container({ident}).ListItem.{labels[key]}]"
-            el(var,"value",value,condition=f"String.IsEqual(Window(Home).Property(dg.focus),{i})")
+            current=f"String.IsEqual(Window(Home).Property(dg.focus),{i})"
+            if key=="Clearlogo":
+                # Kodi/official Dex Hub may supply a clearlogo on the work,
+                # on the parent TV show or as a ListItem property. Do not
+                # replace title artwork with a generic image when it is absent.
+                artwork=("Art(clearlogo)","Art(tvshow.clearlogo)",
+                         "Property(clearlogo)","Property(tvshow.clearlogo)")
+                for label in artwork:
+                    info=f"Container({ident}).ListItem.{label}"
+                    el(var,"value","$INFO["+info+"]",
+                       condition=current+" + !String.IsEmpty("+info+")")
+            else:
+                value=f"$INFO[Container({ident}).ListItem.{labels[key]}]"
+                el(var,"value",value,condition=current)
         default="Select a title" if key=="Title" else ""
         if key=="Fanart":
             default="$INFO[Container(5101).ListItem.Art(fanart)]"
@@ -241,7 +253,7 @@ def create_home():
     # Clear navigation surfaces; avoid opaque frosted panes.
     image(controls,490,38,875,80,"dexglass/nav-surface.png",border="36,25,36,25")
     image(controls,1530,38,330,80,"dexglass/nav-surface.png",border="36,25,36,25")
-    label(controls,76,48,390,70,"DEX  GLASS","font45_title","FFFFFFFF")
+    # No top-left Dex Glass wordmark: let the cinematic artwork breathe.
     navigation=(
         (1001,515,166,"Watch Now","SetFocus(5101)"),
         (1002,684,136,"Movies",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/?action=nuvio_home_media&media=movie",return)'),
@@ -258,7 +270,7 @@ def create_home():
                     right=navigation[k+1][0] if k<len(navigation)-1 else 1001,
                     icon={1006:"search",1007:"settings",1008:"power"}.get(ident))
     # Hero title supports optional clearlogo supplied by Dex Hub, then text.
-    image(controls,86,220,750,176,"$VAR[DG_Clearlogo]",aspect="keep",
+    image(controls,86,202,885,214,"$VAR[DG_Clearlogo]",aspect="keep",
           visible="!String.IsEmpty($VAR[DG_Clearlogo])",fade=200)
     label(controls,86,233,1030,160,"$VAR[DG_Title]","font60","FFFFFFFF",
           visible="String.IsEmpty($VAR[DG_Clearlogo])")
