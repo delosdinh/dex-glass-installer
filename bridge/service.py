@@ -87,15 +87,15 @@ def run():
         if not synced:
             # Rehydrate persisted collection row labels after Kodi launch.
             try:
-                from custom_collections import publish_settings,load
+                from home_config import publish_settings,load
                 publish_settings(load())
             except Exception as exc:
                 xbmc.log("[DexGlassHero] settings sync: %s" % type(exc).__name__,
                          xbmc.LOGWARNING)
             synced=True
         try:
-            cid=int(home.getProperty("dg.focus") or "1") + 5100
-            if cid<5101 or cid>5200:
+            cid=int(home.getProperty("dg.focus") or "5101")
+            if cid<5101 or cid>5412:
                 cid=5101
             title=info(cid,"Label")
             path=info(cid,"FileNameAndPath")
