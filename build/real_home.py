@@ -83,9 +83,9 @@ def textbox(parent,x,y,w,h,text,size="font14",color="FFE4EAF4"):
 
 def pill_button(parent, ident, x, y, w, text, onclick, left=None, right=None, down=5101, icon=None):
     group=control(parent,"group",x,y,w,64)
-    image(group,0,0,w,62,"dexglass/nav-shadow.png",border="28,20,28,20",
-          visible=f"Control.HasFocus({ident})")
-    image(group,0,0,w,62,"dexglass/nav-lens.png",border="24,20,24,20",
+    # Focus is a restrained light stroke, not a large opaque glass bubble.
+    # The clear navigation rail behind remains visible at all times.
+    image(group,8,56,w-16,5,"dexglass/nav-fine-focus.png",
           visible=f"Control.HasFocus({ident})")
     node=control(group,"button",0,0,w,62,ident)
     el(node,"label","" if icon else text)
@@ -259,8 +259,8 @@ def create_home():
         (1002,684,136,"Movies",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/?action=nuvio_home_media&media=movie",return)'),
         (1003,824,148,"TV Shows",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/?action=nuvio_home_media&media=series",return)'),
         (1004,980,195,"Collections","RunPlugin(plugin://plugin.video.dexglass.bridge/?action=configure)"),
-        (1005,1177,167,"Dex Hub",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/",return)'),
-        (1006,1538,96,"Search","RunPlugin(plugin://plugin.video.dexhub/?action=home_search)"),
+        (1005,1177,167,"Add-ons",'ActivateWindow(Videos,"addons://sources/video/",return)'),
+        (1006,1538,96,"Search","RunPlugin(plugin://plugin.video.dexglass.bridge/?action=search)"),
         (1007,1644,96,"Settings","ActivateWindow(SkinSettings)"),
         (1008,1750,96,"Power","ActivateWindow(ShutdownMenu)"),
     )
@@ -269,15 +269,20 @@ def create_home():
                     left=navigation[k-1][0] if k else 1008,
                     right=navigation[k+1][0] if k<len(navigation)-1 else 1001,
                     icon={1006:"search",1007:"settings",1008:"power"}.get(ident))
-    # Hero title supports optional clearlogo supplied by Dex Hub, then text.
-    image(controls,86,202,885,214,"$VAR[DG_Clearlogo]",aspect="keep",
-          visible="!String.IsEmpty($VAR[DG_Clearlogo])",fade=200)
-    label(controls,86,233,1030,160,"$VAR[DG_Title]","font60","FFFFFFFF",
-          visible="String.IsEmpty($VAR[DG_Clearlogo])")
+    # Guaranteed title fallback: the previous String.IsEmpty($VAR[...])
+    # condition suppressed the title altogether on Kodi 22 even with art absent.
+    # The native artwork is used when present; a local read-only bridge service
+    # can supply the missing logo from official Dex Hub's existing art cache.
+    logo_present="!String.IsEmpty(Window(Home).Property(dg.hero.clearlogo))"
+    image(controls,86,202,885,214,
+          "$INFO[Window(Home).Property(dg.hero.clearlogo)]",
+          aspect="keep",visible=logo_present,fade=200)
+    label(controls,86,235,1025,160,"$VAR[DG_Title]","font60","FFFFFFFF",
+          visible="!"+logo_present)
     label(controls,88,405,800,42,
           "$VAR[DG_Year]   •   $VAR[DG_Genre]   •   ★ $VAR[DG_Rating]",
           "font25_title","FFECF1FA")
-    textbox(controls,89,462,775,122,"$VAR[DG_Plot]","font14")
+    textbox(controls,89,448,760,115,"$VAR[DG_Plot]","font20_title")
     pill_button(controls,1101,86,590,280,"Open Dex Hub",
                 'ActivateWindow(Videos,"plugin://plugin.video.dexhub/",return)',
                 left=1101,right=1102)
