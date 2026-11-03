@@ -6,7 +6,7 @@ installed **official Dex Hub**. The main design repository
 reproducible skin build, original Kodi UI files and an independently licensed
 bridge; **no Dex Hub sources, settings, tokens or bundled add-on ZIPs**.
 
-## v0.6.0 — four genuine hubs, row customisation and title artwork
+## v0.6.1 — four genuine hubs, row customisation and title artwork
 
 This is a consolidated functional update driven by on-device screenshots.
 Kodi XML and the public ZIPs are machine-validated; the current release is
@@ -62,11 +62,11 @@ https://delosdinh.github.io/dex-glass-installer/
 **Install in this exact order**, without extracting either ZIP:
 
 1. \`plugin.video.dexglass.bridge-0.3.0.zip\` — mandatory original companion.
-2. \`skin.dexglass-0.6.0.zip\` — updates the Dex Glass Kodi skin.
+2. \`skin.dexglass-0.6.1.zip\` — updates the Dex Glass Kodi skin.
 3. Restart Kodi, then choose **Settings → Interface → Skin → Dex Glass
    (Preview)** if it did not automatically remain selected.
 
-The standalone \`repository.dexglass-1.0.6.zip\` is optional and need not be
+The standalone \`repository.dexglass-1.0.7.zip\` is optional and need not be
 installed; it is not required for the direct ZIP method.
 
 Open Settings (gear) → **Customise All Hub Rows** to edit any of the four
