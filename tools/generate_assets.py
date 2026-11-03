@@ -59,11 +59,53 @@ def panel(x, y, focused=False):
     return 236, 242, 255, 47 if not edge else 115
 
 
+
+def lens(x, y):
+    """Clear glass highlight with border illumination; nine-slice stretchable."""
+    w, h, r = 256, 64, 25
+    dx = max(r - x - 0.5, 0, x - (w-r-0.5))
+    dy = max(r - y - 0.5, 0, y - (h-r-0.5))
+    dist = math.sqrt(dx*dx + dy*dy)
+    if dist > r: return 0, 0, 0, 0
+    # Darker than frosted white: background details remain identifiable.
+    top_spec = max(0, 1 - y/19)
+    bottom_spec = max(0, (y-46)/18)
+    side_spec = max(0, 1 - min(x, w-1-x)/9)
+    edge = max(0, min(1, (dist-(r-2.5))/2.5))
+    shine = max(0, 1 - ((x-56)/96)**2) * max(0, 1 - y/39)
+    alpha = int(min(200, 35 + 53*top_spec + 39*bottom_spec + 33*side_spec + 60*edge + 44*shine))
+    return 204+int(30*top_spec), 231, 255, alpha
+
+
+def nav_surface(x, y):
+    """Semi-transparent navigation capsule; panoramic background stays visible."""
+    w, h, r = 1150, 86, 36
+    dx=max(r-x,0,x-(w-r-1))
+    dy=max(r-y,0,y-(h-r-1))
+    distance=math.hypot(dx,dy)
+    if distance>r: return 0,0,0,0
+    edge=max(0,min(1,(distance-(r-2))/2))
+    top=max(0,1-y/18)
+    alpha=int(min(140,19+62*edge+52*top))
+    return 213,233,252,alpha
+
+
+def lens_shadow(x, y):
+    """Subtle soft shadow, stretched with Kodi texture border handling."""
+    w,h=256,90
+    edge_x=min(1,x/30,(w-1-x)/30)
+    edge_y=min(1,y/24,(h-1-y)/24)
+    inside=max(0,min(edge_x,edge_y))
+    return 1,7,17,int(60*inside)
+
 def main():
     png(OUT / "hero-scrim.png", 1920, 1080, scrim)
     png(OUT / "fallback.png", 1920, 1080, fallback)
     png(OUT / "power-glass.png", 128, 64, lambda x, y: panel(x, y, False))
     png(OUT / "power-focus.png", 128, 64, lambda x, y: panel(x, y, True))
+    png(OUT / "nav-surface.png", 1150, 86, nav_surface)
+    png(OUT / "nav-lens.png", 256, 64, lens)
+    png(OUT / "nav-shadow.png", 256, 90, lens_shadow)
     print("Generated original artwork in", OUT)
 
 
