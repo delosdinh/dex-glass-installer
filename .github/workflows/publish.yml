@@ -10,6 +10,7 @@ on:
       - "build/build_skin.py"
       - "build/liquid_glass.py"
       - "build/real_home.py"
+      - "build/real_home_pages.py"
       - "build/dexglass_settings.py"
       - "build/inter_font.py"
       - "bridge/**"
@@ -46,7 +47,7 @@ jobs:
 
       - name: Check bridge and home-screen behaviour
         run: |
-          python3 -m py_compile bridge/default.py bridge/custom_collections.py build/build_skin.py build/real_home.py build/dexglass_settings.py installer/generate_repo.py
+          python3 -m py_compile bridge/default.py bridge/custom_collections.py bridge/home_config.py bridge/search.py bridge/service.py build/build_skin.py build/real_home_pages.py build/dexglass_settings.py installer/generate_repo.py
           python3 -m unittest discover -s tests -v
 
       - name: Build original artwork
@@ -67,14 +68,19 @@ jobs:
           out = Path("dist/site")
           root = ET.parse(out / "addons.xml").getroot()
           assert {addon.attrib["id"] for addon in root} == {"skin.dexglass", "repository.dexglass", "plugin.video.dexglass.bridge"}
-          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.5.0.zip") as z:
+          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.6.0.zip") as z:
               assert z.testzip() is None
               assert ET.fromstring(z.read("skin.dexglass/addon.xml")).get("id") == "skin.dexglass"
               home = ET.fromstring(z.read("skin.dexglass/xml/Home.xml"))
               rails=[e for e in home.iter("content") if e.text and e.text.startswith("plugin://")]
-              assert len(rails)==10, rails
-              assert sum("plugin.video.dexglass.bridge" in r.text for r in rails)==6
-              assert len(list(home.iter("item")))==4
+              assert len(rails)==48, rails
+              assert sum("plugin.video.dexglass.bridge" in r.text for r in rails)==48
+              assert b"page=watch" in z.read("skin.dexglass/xml/Home.xml")
+              assert b"page=movies" in z.read("skin.dexglass/xml/Home.xml")
+              assert b"page=tv" in z.read("skin.dexglass/xml/Home.xml")
+              assert b"page=collections" in z.read("skin.dexglass/xml/Home.xml")
+              assert b"nav-fine-focus.png" in z.read("skin.dexglass/xml/Home.xml")
+              assert b"plugin.video.dexglass.bridge/?action=search" in z.read("skin.dexglass/xml/Home.xml")
               assert b"DEX  GLASS" not in z.read("skin.dexglass/xml/Home.xml")
               assert b"tvshow.clearlogo" in z.read("skin.dexglass/xml/DexGlass_Variables.xml")
               assert b"plugin.video.dexglass.bridge" in z.read("skin.dexglass/xml/SkinSettings.xml")
@@ -85,12 +91,16 @@ jobs:
               assert z.read("skin.dexglass/xml/DexGlass_Variables.xml").count(b"DG_Fanart")>0
               deps=ET.fromstring(z.read("skin.dexglass/addon.xml")).findall("requires/import")
               assert any(i.get("addon")=="plugin.video.dexglass.bridge" for i in deps)
-          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.5.zip") as z:
+          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.6.zip") as z:
               assert z.testzip() is None
-          with ZipFile(out / "plugin.video.dexglass.bridge" / "plugin.video.dexglass.bridge-0.2.0.zip") as z:
+          with ZipFile(out / "plugin.video.dexglass.bridge" / "plugin.video.dexglass.bridge-0.3.0.zip") as z:
               assert z.testzip() is None
               assert "plugin.video.dexglass.bridge/default.py" in z.namelist()
               assert "plugin.video.dexglass.bridge/custom_collections.py" in z.namelist()
+              assert "plugin.video.dexglass.bridge/home_config.py" in z.namelist()
+              assert "plugin.video.dexglass.bridge/search.py" in z.namelist()
+              assert "plugin.video.dexglass.bridge/service.py" in z.namelist()
+              assert any(e.get("point")=="xbmc.service" for e in ET.fromstring(z.read("plugin.video.dexglass.bridge/addon.xml")).findall("extension"))
               assert ET.fromstring(z.read("plugin.video.dexglass.bridge/addon.xml")).get("id")=="plugin.video.dexglass.bridge"
           print("Validated three add-ons and metadata for GitHub Pages")
           PY
