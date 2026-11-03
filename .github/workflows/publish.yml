@@ -54,7 +54,7 @@ jobs:
           with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.1.0.zip") as z:
               assert z.testzip() is None
               assert ET.fromstring(z.read("skin.dexglass/addon.xml")).get("id") == "skin.dexglass"
-          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.0.zip") as z:
+          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.1.zip") as z:
               assert z.testzip() is None
           print("Validated ZIP and metadata for GitHub Pages")
           PY
