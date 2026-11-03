@@ -10,6 +10,7 @@ on:
       - "build/build_skin.py"
       - "build/liquid_glass.py"
       - "build/real_home.py"
+      - "bridge/**"
       - "tools/generate_assets.py"
       - "installer/generate_repo.py"
       - "README.md"
@@ -35,6 +36,9 @@ jobs:
       - name: Check out installer source
         uses: actions/checkout@v4
 
+      - name: Check companion Python syntax
+        run: python3 -m py_compile bridge/default.py build/build_skin.py build/real_home.py installer/generate_repo.py
+
       - name: Build original artwork
         run: python3 tools/generate_assets.py
 
@@ -52,17 +56,27 @@ jobs:
           import xml.etree.ElementTree as ET
           out = Path("dist/site")
           root = ET.parse(out / "addons.xml").getroot()
-          assert {addon.attrib["id"] for addon in root} == {"skin.dexglass", "repository.dexglass"}
-          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.3.0.zip") as z:
+          assert {addon.attrib["id"] for addon in root} == {"skin.dexglass", "repository.dexglass", "plugin.video.dexglass.bridge"}
+          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.4.0.zip") as z:
               assert z.testzip() is None
               assert ET.fromstring(z.read("skin.dexglass/addon.xml")).get("id") == "skin.dexglass"
               home = ET.fromstring(z.read("skin.dexglass/xml/Home.xml"))
-              rails=[e for e in home.iter("content") if (e.text or "").startswith("plugin://plugin.video.dexhub/")]
-              assert len(rails)==7, len(rails)
+              rails=[e for e in home.iter("content") if e.text and e.text.startswith("plugin://")]
+              assert len(rails)==6, rails
+              assert sum("plugin.video.dexglass.bridge" in r.text for r in rails)==2
+              assert len(list(home.iter("item")))==4
+              icons=[e.text for e in home.iter("texture") if (e.text or "").startswith("dexglass/icon-")]
+              assert len(icons)==3, icons
               assert z.read("skin.dexglass/xml/DexGlass_Variables.xml").count(b"DG_Fanart")>0
-          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.3.zip") as z:
+              deps=ET.fromstring(z.read("skin.dexglass/addon.xml")).findall("requires/import")
+              assert any(i.get("addon")=="plugin.video.dexglass.bridge" for i in deps)
+          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.4.zip") as z:
               assert z.testzip() is None
-          print("Validated ZIP and metadata for GitHub Pages")
+          with ZipFile(out / "plugin.video.dexglass.bridge" / "plugin.video.dexglass.bridge-0.1.0.zip") as z:
+              assert z.testzip() is None
+              assert "plugin.video.dexglass.bridge/default.py" in z.namelist()
+              assert ET.fromstring(z.read("plugin.video.dexglass.bridge/addon.xml")).get("id")=="plugin.video.dexglass.bridge"
+          print("Validated three add-ons and metadata for GitHub Pages")
           PY
 
       - name: Configure GitHub Pages
