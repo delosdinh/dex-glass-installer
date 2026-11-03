@@ -1,94 +1,116 @@
 # Dex Glass Kodi installer
 
-An **original cinematic Kodi home screen**, inspired by the tvOS Liquid Glass
-aesthetic, with a **separately installed** official Dex Hub add-on supplying
-media and sync services. The main \`delosdinh/dex-glass\` design/development
-repository stays private; this public installer contains only the reproducible
-Kodi build, original bridge, openly licensed fonts, textures and workflows.
+An independent Apple tvOS-inspired Kodi skin, built around the separately
+installed **official Dex Hub**. The main design repository
+\`delosdinh/dex-glass\` stays private. This public repository provides a
+reproducible skin build, original Kodi UI files and an independently licensed
+bridge; **no Dex Hub sources, settings, tokens or bundled add-on ZIPs**.
 
-## v0.5.0 — consolidated experience update
+## v0.6.0 — four genuine hubs, row customisation and title artwork
 
-This release addresses the owner's latest on-device screenshots and requests:
+This is a consolidated functional update driven by on-device screenshots.
+Kodi XML and the public ZIPs are machine-validated; the current release is
+**experimental and must still be tested on CoreELEC**.
 
-- **No "DEX GLASS" label** at the top left: artwork fills that area.
-- **Inter fonts** for an Apple-like typographic feel. Inter is SIL OFL; SF Pro
-  is proprietary and is **not included**, downloaded or used.
-- **Movie/TV graphical title logos** preferred on the hero. Kodi tries the
-  selected title's clearlogo, the parent TV show's clearlogo and relevant
-  list-item properties. When no usable clearlogo exists, the text title is
-  deliberately retained rather than displaying a fake graphical logo.
-- **Dex Glass custom settings window** replaces the inherited Pyrus
-  "Customize Watch Now" editor.
-- **Four add/replace/remove/reorder collection row slots**, saved only for
-  Dex Glass. Choose a Kaptain/Dex Community group, folder and catalogue via
-  the installed official Dex Hub; the bridge writes its own profile config
-  and fetches that catalogue into a real Kodi widget row (falling back to
-  an open-Dex-Hub tile where Kodi cannot resolve the listing).
-- **Separate Continue Watching films/episodes** and the working cinematic
-  background/navigation from v0.4 remain.
-- **Feature-parity status and plan:** [docs/FEATURE_PARITY.md](docs/FEATURE_PARITY.md).
+- Watch Now, Movies, TV Shows and Collections are now **four actual Dex Glass
+  homepage pages**, not buttons opening Dex Hub's custom windows.
+- Each page has 12 positions. In **Dex Glass Settings → Customise All Hub Rows**
+  or the home **Customise** button, you can select the page, add a row, choose
+  a builtin feed or Kaptain/Dex Community catalogue, replace a row, move it
+  earlier/later or remove it. Empty positions disappear. Default Watch Now
+  still has the seven requested rows. The page-specific editor saves all
+  choices only in the original Dex Glass bridge profile.
+- Existing Kaptain catalogue selections made in v0.5 are **migrated to Watch
+  Now**, without deleting the previous \`collections.json\` backup.
+- Kaptain selections now load through a per-page **real Kodi widget content
+  route**, not just a settings button. Because some Dex Hub catalogue routes
+  may return no Kodi JSON-RPC items on CoreELEC, a failed feed shows an
+  explicit clickable fallback opening the original source instead of a
+  misleading empty row.
+- The top menu no longer has a Dex Hub tab: **Add-ons** opens Kodi's video
+  add-ons. Official Dex Hub is still separately installed and can be accessed
+  there.
+- The **Search icon** launches a native Dex Glass search keyboard and
+  selects from official Dex Hub's \`skin_search\` result items. It does not open
+  Dex Hub's full-screen custom search. Results still use Kodi's own dialogs;
+  an original cinematic search-grid page is future work.
+- The focused menu uses a **thin luminous underline**, not an opaque white
+  focus pill.
+- Hero title **text always appears when a graphical logo is unavailable**,
+  fixing the blank Dune title seen in the screen photos. The bridge service
+  first reads Kodi's own focused-title logos, and can read missing logos from
+  the installed official Dex Hub's **local art cache**. No network artwork
+  fetch is done by the service. A graphical logo is shown only if available;
+  otherwise it remains text.
+- Reduced plot summary font size and kept the clean top-left corner.
+- Inter fonts under the SIL OFL remain bundled, not restricted Apple SF Pro.
 
-> **Experimental:** The skin package, Python syntax, test fixtures and public
-> ZIPs are checked by GitHub Actions. Kaptain widgets, new settings interactions,
-> Inter rendering and clearlogo availability still need **on-device** testing.
-> Full Dex Hub playback overlays, trailer autoplay, credits controls, cast/crew,
-> notifications and arbitrary row arrangement are not yet implemented.
+**Still missing:** exact Apple compositor refraction is not supported by Kodi
+XML; trailer autoplay, full title-details/cast/crew, player-overlay parity,
+notifications, next-episode/skip-credits controls and sound design are
+separate feature tracks. Account sync and streaming remain in the official
+installed Dex Hub. See [feature parity](docs/FEATURE_PARITY.md).
 
-## Direct ZIP installation on Kodi / CoreELEC
+## How to install on your Ugoos / CoreELEC
 
-Public installer directory:
+The built-in Kodi **Install from repository** index has repeatedly failed on
+this device. Use **Install from ZIP file** through your existing "Dex Glass"
+File Manager source:
 
 https://delosdinh.github.io/dex-glass-installer/
 
-The separate Kodi repository catalogue previously failed on CoreELEC, so
-**use Install from ZIP file rather than Install from repository**.
+**Install in this exact order**, without extracting either ZIP:
 
-1. In Kodi go to **Add-ons → Install from ZIP file → Dex Glass**, using the
-   existing File Manager source above.
-2. Install **\`plugin.video.dexglass.bridge-0.2.0.zip\`** *first*. This updates
-   the original Dex Glass companion media bridge and collection editor.
-3. Then install **\`skin.dexglass-0.5.0.zip\`**. This is the new Kodi skin.
-4. Return to **Settings → Interface → Skin → Dex Glass (Preview)** if needed.
-   Restart Kodi if the settings screen isn't updated immediately.
-5. In Dex Glass choose the top-right **Settings icon**; the screen should now
-   read **Dex Glass | Customise Home**, not Pyrus's *Customize Watch Now*.
-   Choose **Add / replace Kaptain catalogue** to add a row.
+1. \`plugin.video.dexglass.bridge-0.3.0.zip\` — mandatory original companion.
+2. \`skin.dexglass-0.6.0.zip\` — updates the Dex Glass Kodi skin.
+3. Restart Kodi, then choose **Settings → Interface → Skin → Dex Glass
+   (Preview)** if it did not automatically remain selected.
 
-No Dex Hub settings, Nuvio account, Trakt/Simkl token, or personal settings
-are changed or copied. The catalogue picker reads installed Dex Hub collection
-data at runtime; it may need adjustment after future official Dex Hub updates.
+The standalone \`repository.dexglass-1.0.6.zip\` is optional and need not be
+installed; it is not required for the direct ZIP method.
 
-Both ZIP files must remain intact; do not unzip them.
+Open Settings (gear) → **Customise All Hub Rows** to edit any of the four
+pages. A change prompts Kodi to reload its skin and restore the home screen.
+The Kodi companion service rehydrates its saved row titles after login.
+The old Dex Glass v0.5 choices remain on disk for migration or rollback.
 
-## Publishing
+No phone companion, paid subscription or new personal credentials required.
 
-The [GitHub Actions release workflow](.github/workflows/publish.yml) downloads
-the pinned upstream Pyrus v1.1.6 as a licensed framework, replaces **Home.xml**
-and **SkinSettings.xml** with original Dex Glass windows, builds pinned Inter
-from Google Fonts under the SIL OFL and original glass artwork, then generates
-the skin, bridge, repository and public index ZIPs.
+## How the pieces work
 
-The original [Kaptain bridge](bridge/custom_collections.py) saves rows under
-\`addon_data/plugin.video.dexglass.bridge/collections.json\`; this file is local
-to the user's Kodi profile, not stored on GitHub or synced to external apps.
+- [build/real_home_pages.py](build/real_home_pages.py) generates our own
+  four-page cinematic \`Home.xml\`, not the Pyrus Home editor.
+- [bridge/home_config.py](bridge/home_config.py) provides per-page row
+  persistence, source replacement and reordering in Kodi using only the
+  Dex Glass add-on profile.
+- [bridge/default.py](bridge/default.py) populates configurable Kodi
+  widgets with official Dex Hub's public plugin directory items.
+- [bridge/search.py](bridge/search.py) provides a separate Kodi search
+  keyboard/result selector without launching Dex Hub's custom search.
+- [bridge/service.py](bridge/service.py) keeps the hero title logo in sync
+  with the selected widget and restores saved row titles after starting Kodi.
+- [build/inter_font.py](build/inter_font.py) uses a pinned and SHA-256
+  validated Inter source from Google Fonts under its bundled OFL.
+- The [Actions workflow](.github/workflows/publish.yml) produces and
+  validates the ZIPs and publishes the static install directory.
 
-See [feature coverage](docs/FEATURE_PARITY.md) for unimplemented functionality.
-No secrets or proprietary Dex Hub add-on code are distributed.
+This skin is currently a **compatibility framework plus our own Home.xml and
+SkinSettings.xml**. Pyrus/Estuary-based source remains for other Kodi windows
+with the required upstream licences and notices. Do not promise full Dex Hub
+parity until the unfinished player and details windows are implemented.
 
-## Licences and attribution
+## Attribution and licensing
 
-- [Pyrus/Applify](https://github.com/kamilfotoveci-design/applify) by kamilwhoo,
-  with underlying Team Kodi Estuary portions. The skin ZIP preserves the
-  required upstream licences and notices.
-- [Inter](https://github.com/google/fonts/tree/main/ofl/inter), the
-  SIL Open Font License. The build includes its OFL notice.
-- **No Apple SF Pro font files are included.** Apple's licence restricts
-  their use and redistribution.
-- [Dex Hub](https://github.com/6ahd/plugin.video.dexhub) © 6ahd/DexWorld:
-  separate proprietary add-on, never bundled or modified. Users install and
-  configure it from its official sources.
-- The original Dex Glass companion bridge is under MIT (separate from any
-  components with their own licence).
+- [Pyrus/Applify](https://github.com/kamilfotoveci-design/applify) by kamilwhoo
+  incorporates Team Kodi Estuary. The redistributed skin ZIP retains upstream
+  GPL/CC BY-SA notices and readable code.
+- [Inter](https://github.com/google/fonts/tree/main/ofl/inter) is licensed
+  under the SIL Open Font License. Its OFL notice accompanies the font files.
+- **Apple SF Pro** proprietary fonts are not included or copied.
+- [Dex Hub](https://github.com/6ahd/plugin.video.dexhub) is separately
+  installed proprietary software (6ahd/DexWorld), never redistributed by
+  this repository or written to by its companion.
+- The original bridge is independently licensed under MIT.
 
-Independent experimental project, not affiliated with Apple, Pyrus, Team Kodi
+Independent experimental project; no affiliation with Apple, Pyrus, Team Kodi
 or DexWorld.
