@@ -19,9 +19,9 @@ jobs:
           import xml.etree.ElementTree as ET
           base="https://delosdinh.github.io/dex-glass-installer/"
           paths=["", "addons.xml", "addons.xml.md5",
-                 "repository.dexglass-1.0.2.zip",
-                 "repository.dexglass/repository.dexglass-1.0.2.zip",
-                 "skin.dexglass/skin.dexglass-0.2.0.zip"]
+                 "repository.dexglass-1.0.3.zip",
+                 "repository.dexglass/repository.dexglass-1.0.3.zip",
+                 "skin.dexglass/skin.dexglass-0.3.0.zip"]
           responses={}
           for path in paths:
               for attempt in range(3):
@@ -42,7 +42,7 @@ jobs:
           assert ids == {"repository.dexglass","skin.dexglass"},ids
           md5=hashlib.md5(responses["addons.xml"]).hexdigest()
           assert responses["addons.xml.md5"].decode().strip()==md5
-          with zipfile.ZipFile(io.BytesIO(responses["repository.dexglass-1.0.2.zip"])) as z:
+          with zipfile.ZipFile(io.BytesIO(responses["repository.dexglass-1.0.3.zip"])) as z:
               assert z.testzip() is None
               root=ET.fromstring(z.read("repository.dexglass/addon.xml"))
               assert root.get("id")=="repository.dexglass"
@@ -50,11 +50,11 @@ jobs:
               assert urls["info"]==base+"addons.xml",urls
               assert urls["checksum"]==base+"addons.xml.md5",urls
               assert urls["datadir"]==base,urls
-          with zipfile.ZipFile(io.BytesIO(responses["skin.dexglass/skin.dexglass-0.2.0.zip"])) as z:
+          with zipfile.ZipFile(io.BytesIO(responses["skin.dexglass/skin.dexglass-0.3.0.zip"])) as z:
               assert z.testzip() is None
               skin=ET.fromstring(z.read("skin.dexglass/addon.xml"))
               assert skin.get("id")=="skin.dexglass"
           index=responses[""].decode("utf8")
-          assert '<a href="repository.dexglass-1.0.2.zip">repository.dexglass-1.0.2.zip</a>' in index
+          assert '<a href="repository.dexglass-1.0.3.zip">repository.dexglass-1.0.3.zip</a>' in index
           print("Live installer URLs and repository metadata: PASS")
           PY
