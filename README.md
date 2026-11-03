@@ -2,7 +2,7 @@
 
 This is the **public Kodi installer** for [Dex Glass](https://github.com/delosdinh/dex-glass), an experimental Apple TV-inspired skin. The development repository is private. This public repository contains **only the reproducible skin builder, original asset generator, Kodi repository metadata generator, and publishing workflow**.
 
-> **Version 0.1.0 is a Pyrus-based test skin, not the completed tvOS 26 Liquid Glass design.** It has a separate `skin.dexglass` identity and a top-level link to the **separately installed official Dex Hub plugin**. CoreELEC/Kodi 22 compatibility and full Dex Hub playback/credits integrations have not yet been confirmed on-device.
+> **Version 0.2.0 is a Pyrus-derived test skin with original clear Liquid Glass-style Kodi navigation, not the completed tvOS 26 design.** It has a separate `skin.dexglass` identity and a top-level link to the **separately installed official Dex Hub plugin**. Actual on-device CoreELEC/Kodi 22 compatibility and full Dex Hub playback/credits integrations have not yet been confirmed on-device.
 
 ## Direct Kodi installation
 
@@ -13,7 +13,7 @@ Once the automated deployment is successful, the public landing page is intended
 1. In Kodi: **Settings → File Manager → Add source**.
 2. Enter the published URL, name it **Dex Glass**, and save.
 3. Navigate to **Add-ons → Install from ZIP file → Dex Glass**.
-4. Install `repository.dexglass-1.0.1.zip` (replaces the original repository package).
+4. Install `repository.dexglass-1.0.2.zip` (replaces previous repository packages).
 5. Choose **Install from repository → Dex Glass Repository → Look and feel → Skin → Dex Glass (Preview)**.
 
 If the File Manager's HTTP directory browser does not list the ZIP, open the public site in a browser and use its direct links, or try the alternative URL-specific install instructions. **Do not claim installation works until the site is live and tested on a Kodi device.**
