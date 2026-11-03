@@ -14,9 +14,9 @@ import zipfile
 
 HOST = "https://delosdinh.github.io/dex-glass-installer/"
 REPO_ID = "repository.dexglass"
-REPO_VERSION = "1.0.1"
+REPO_VERSION = "1.0.2"
 SKIN_ID = "skin.dexglass"
-SKIN_VERSION = "0.1.0"
+SKIN_VERSION = "0.2.0"
 
 def element_bytes(node):
     return ET.tostring(node, encoding="utf-8", xml_declaration=True)
@@ -138,5 +138,5 @@ def build(skin_zip, out):
     print("Publish at:", HOST)
 
 if __name__ == "__main__":
-    build(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("dist/skin.dexglass-0.1.0.zip"),
+    build(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("dist/skin.dexglass-0.2.0.zip"),
           Path(sys.argv[2]) if len(sys.argv) > 2 else Path("dist/site"))
