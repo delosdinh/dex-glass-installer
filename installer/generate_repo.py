@@ -14,9 +14,11 @@ import zipfile
 
 HOST = "https://delosdinh.github.io/dex-glass-installer/"
 REPO_ID = "repository.dexglass"
-REPO_VERSION = "1.0.3"
+REPO_VERSION = "1.0.4"
 SKIN_ID = "skin.dexglass"
-SKIN_VERSION = "0.3.0"
+SKIN_VERSION = "0.4.0"
+BRIDGE_ID = "plugin.video.dexglass.bridge"
+BRIDGE_VERSION = "0.1.0"
 
 def element_bytes(node):
     return ET.tostring(node, encoding="utf-8", xml_declaration=True)
@@ -73,9 +75,28 @@ def build(skin_zip, out):
     shutil.copy2(skin_zip, skin_dir / (SKIN_ID + "-" + SKIN_VERSION + ".zip"))
     shutil.copy2(skin_zip, out / (SKIN_ID + "-" + SKIN_VERSION + ".zip"))
 
+    # Build the separately installed, original read-only Python bridge.
+    bridge_dir = Path(__file__).resolve().parents[1] / "bridge"
+    bridge_xml_data = (bridge_dir / "addon.xml").read_bytes()
+    bridge_xml = ET.fromstring(bridge_xml_data)
+    if bridge_xml.get("id") != BRIDGE_ID or bridge_xml.get("version") != BRIDGE_VERSION:
+        raise ValueError("Unexpected Dex Glass bridge identity")
+    bridge_out = out / BRIDGE_ID
+    bridge_out.mkdir(exist_ok=True)
+    bridge_name = BRIDGE_ID + "-" + BRIDGE_VERSION + ".zip"
+    bridge_zip = bridge_out / bridge_name
+    with zipfile.ZipFile(bridge_zip, "w", compression=zipfile.ZIP_DEFLATED) as z:
+        for name in ("addon.xml", "default.py", "LICENSE"):
+            z.write(bridge_dir / name, BRIDGE_ID + "/" + name)
+    shutil.copy2(bridge_zip, out / bridge_name)
+    with zipfile.ZipFile(bridge_zip) as z:
+        if z.testzip() is not None:
+            raise ValueError("Bridge ZIP CRC validation failed")
+
     addons = ET.Element("addons")
     addons.append(ET.fromstring(repo_xml))
     addons.append(skin_xml)
+    addons.append(bridge_xml)
     addons_xml = element_bytes(addons)
     (out / "addons.xml").write_bytes(addons_xml)
     (out / "addons.xml.md5").write_text(hashlib.md5(addons_xml).hexdigest(), encoding="ascii")
@@ -138,5 +159,5 @@ def build(skin_zip, out):
     print("Publish at:", HOST)
 
 if __name__ == "__main__":
-    build(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("dist/skin.dexglass-0.3.0.zip"),
+    build(Path(sys.argv[1]) if len(sys.argv) > 1 else Path("dist/skin.dexglass-0.4.0.zip"),
           Path(sys.argv[2]) if len(sys.argv) > 2 else Path("dist/site"))
