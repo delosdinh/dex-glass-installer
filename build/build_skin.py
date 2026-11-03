@@ -94,14 +94,22 @@ def build(source, dest, assets):
             elif name == "xml/SkinSettings.xml":
                 data = create_settings()
             elif name == "xml/Font.xml":
-                data = data.replace(b"sf-pro-display-regular.ttf", b"OrchardUI-Regular.ttf")
-                data = data.replace(b"sf-pro-display-semibold.ttf", b"OrchardUI-Semibold.ttf")
+                # Inter is OFL-licensed and visually close to Apple's UI font.
+                # Never redistribute Apple's restricted SF Pro binaries.
+                data = data.replace(b"sf-pro-display-regular.ttf", b"Inter-Regular.ttf")
+                data = data.replace(b"sf-pro-display-semibold.ttf", b"Inter-Semibold.ttf")
             if Path(name).suffix.lower() in TEXT_TYPES and name not in ("addon.xml", "resources/package-sha256.json"):
                 data = data.replace(b"skin.applify", b"skin.dexglass")
             files[name] = data
     files["xml/DexGlass_Variables.xml"] = create_variables()
+    font_folder = Path(__file__).resolve().parents[1] / "build" / "fonts"
+    for name in ("Inter-Regular.ttf", "Inter-Semibold.ttf", "Inter-OFL.txt"):
+        path = font_folder / name
+        if not path.is_file():
+            raise FileNotFoundError("Inter font missing; run build/inter_font.py: " + str(path))
+        files["fonts/" + name] = path.read_bytes()
     required = ["addon.xml","xml/Home.xml","xml/Font.xml","resources/home_hubs.py",
-                "LICENSE","NOTICE.txt","fonts/OrchardUI-Regular.ttf","fonts/OrchardUI-Semibold.ttf"]
+                "LICENSE","NOTICE.txt","fonts/Inter-Regular.ttf","fonts/Inter-Semibold.ttf","fonts/Inter-OFL.txt"]
     missing = [name for name in required if name not in files]
     if missing:
         raise ValueError("Missing source files: " + ", ".join(missing))
@@ -135,6 +143,7 @@ Kaptain widget loading via Kodi JSON-RPC needs CoreELEC testing;
 a failed catalogue has a clickable fallback to its official route.
 
 Pyrus/Estuary remains a licensed base for secondary Kodi windows.
+Inter fonts licensed under OFL replace Apple SF Pro; no Apple fonts shipped.
 Keep your prior skin installed and switch back from Kodi Interface > Skin.
 """
     # Pyrus diagnostics reference this manifest; recalculate for modified files.
