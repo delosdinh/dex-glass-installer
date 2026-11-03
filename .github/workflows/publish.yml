@@ -11,6 +11,7 @@ on:
       - "build/liquid_glass.py"
       - "build/real_home.py"
       - "bridge/**"
+      - "tests/**"
       - "tools/generate_assets.py"
       - "installer/generate_repo.py"
       - "README.md"
@@ -36,8 +37,10 @@ jobs:
       - name: Check out installer source
         uses: actions/checkout@v4
 
-      - name: Check companion Python syntax
-        run: python3 -m py_compile bridge/default.py build/build_skin.py build/real_home.py installer/generate_repo.py
+      - name: Check bridge and home-screen behaviour
+        run: |
+          python3 -m py_compile bridge/default.py build/build_skin.py build/real_home.py installer/generate_repo.py
+          python3 -m unittest discover -s tests -v
 
       - name: Build original artwork
         run: python3 tools/generate_assets.py
