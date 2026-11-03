@@ -35,7 +35,7 @@ def addon_xml(data):
         raise ValueError("Not the expected Pyrus skin")
     element.attrib.update({"id":"skin.dexglass",
                            "name":"Dex Glass (Preview)",
-                           "version":"0.6.0",
+                           "version":"0.6.1",
                            "provider-name":"Dex Glass; based on Pyrus by kamilwhoo"})
     requirements = element.find("requires")
     if requirements is None:
@@ -122,7 +122,7 @@ def build(source, dest, assets):
             files["media/dexglass/" + asset.relative_to(assets).as_posix()] = asset.read_bytes()
             count += 1
         print("Included original Dex Glass assets:", count)
-    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass native home v0.6.0
+    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass native home v0.6.1
 
 Original Kodi Home.xml includes separate Watch Now, Movies, TV Shows and
 Collections hubs, 12 per-page configurable rows, a restrained glass focus,
@@ -168,7 +168,7 @@ release; trailers, player overlays and cast/crew details remain to build.
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", help="Local official Pyrus v1.1.6 ZIP; optional in GitHub Actions")
-    parser.add_argument("--output", default="dist/skin.dexglass-0.6.0.zip")
+    parser.add_argument("--output", default="dist/skin.dexglass-0.6.1.zip")
     parser.add_argument("--assets", default="build/media/dexglass")
     args = parser.parse_args()
     build(source_zip(args.source), Path(args.output), Path(args.assets))
