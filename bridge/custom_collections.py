@@ -181,7 +181,7 @@ def choose_catalogue():
         _log("Cannot browse collection groups: %s: %s" %
              (type(exc).__name__, exc), xbmc.LOGWARNING)
         xbmcgui.Dialog().ok("Dex Glass Collections",
-                            "Unable to read Kaptain catalogues from your installed Dex Hub.",
+                            "Unable to read Kaptain catalogues from your installed Dex Hub.\n"
                             "Check that the official Dex Hub add-on is enabled.")
         return None
 
