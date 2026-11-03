@@ -8,6 +8,7 @@ on:
     paths:
       - ".github/workflows/publish.yml"
       - "build/build_skin.py"
+      - "build/liquid_glass.py"
       - "tools/generate_assets.py"
       - "installer/generate_repo.py"
       - "README.md"
@@ -51,10 +52,10 @@ jobs:
           out = Path("dist/site")
           root = ET.parse(out / "addons.xml").getroot()
           assert {addon.attrib["id"] for addon in root} == {"skin.dexglass", "repository.dexglass"}
-          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.1.0.zip") as z:
+          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.2.0.zip") as z:
               assert z.testzip() is None
               assert ET.fromstring(z.read("skin.dexglass/addon.xml")).get("id") == "skin.dexglass"
-          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.1.zip") as z:
+          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.2.zip") as z:
               assert z.testzip() is None
           print("Validated ZIP and metadata for GitHub Pages")
           PY
