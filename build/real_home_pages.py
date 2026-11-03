@@ -204,8 +204,14 @@ def create_home():
 
     # Replace button saying "Open Dex Hub" with genuine title actions once
     # official plugin URLs expose details on the focused ListItem.
-    nav_button(controls,1101,88,260,"Play / Open",
-               ["SendClick(5101)"],1101,1102,5101)
+    hero=nav_button(controls,1101,88,260,"Play / Open",
+               [],1101,1102,5101)
+    hero_action=next(e for e in hero if e.tag=="control" and e.attrib.get("type")=="button")
+    # Kodi supports conditional onclick actions; use the previously focused
+    # row's actual container ID, not the first Watch Now row.
+    for cid in IDS:
+        el(hero_action,"onclick",f"SendClick({cid})",
+           condition=f"String.IsEqual(Window(Home).Property(dg.focus),{cid})")
     nav_button(controls,1102,367,247,"Customise",
                ["RunPlugin(plugin://plugin.video.dexglass.bridge/?action=configure)"],
                1101,1102,5101)
