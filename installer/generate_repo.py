@@ -14,7 +14,7 @@ import zipfile
 
 HOST = "https://delosdinh.github.io/dex-glass-installer/"
 REPO_ID = "repository.dexglass"
-REPO_VERSION = "1.0.0"
+REPO_VERSION = "1.0.1"
 SKIN_ID = "skin.dexglass"
 SKIN_VERSION = "0.1.0"
 
@@ -28,13 +28,16 @@ def make_repository_xml():
         "version": REPO_VERSION,
         "provider-name": "Dex Glass community preview",
     })
-    ET.SubElement(root, "requires")
+    requires = ET.SubElement(root, "requires")
+    ET.SubElement(requires, "import", {"addon": "xbmc.addon", "version": "12.0.0"})
     ext = ET.SubElement(root, "extension", {"point": "xbmc.addon.repository"})
     d = ET.SubElement(ext, "dir")
     ET.SubElement(d, "info", {"compressed": "false"}).text = HOST + "addons.xml"
     ET.SubElement(d, "checksum").text = HOST + "addons.xml.md5"
     ET.SubElement(d, "datadir", {"zip": "true"}).text = HOST
     ET.SubElement(d, "hashes").text = "false"
+    # Keep the v20+ <dir> structure. Bumping the add-on version forces
+    # Kodi to refresh repository definitions instead of retaining stale data.
     meta = ET.SubElement(root, "extension", {"point": "xbmc.addon.metadata"})
     ET.SubElement(meta, "platform").text = "all"
     ET.SubElement(meta, "license").text = "Original repository configuration; see upstream skin licences"
