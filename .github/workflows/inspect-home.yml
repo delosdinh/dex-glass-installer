@@ -1,0 +1,36 @@
+name: Inspect Kodi Home navigation (developer)
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/inspect-home.yml"
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Examine upstream Pyrus Home XML without republishing its assets
+        run: |
+          python3 - <<'PY'
+          import io,re,urllib.request,zipfile,xml.etree.ElementTree as ET
+          url="https://github.com/kamilfotoveci-design/applify/releases/download/v1.1.6/skin.applify-1.1.6.zip"
+          with urllib.request.urlopen(url,timeout=90) as resp: data=resp.read()
+          with zipfile.ZipFile(io.BytesIO(data)) as z:
+              xml=z.read("skin.applify/xml/Home.xml").decode()
+          lines=xml.splitlines()
+          print("Home XML lines",len(lines))
+          for needle in ["9101","9102","9103","9104","<texturefocus","<texturenofocus","<include","<onfocus","<onunfocus","<onleft","<onright","<onup","<ondown","<controls>"]:
+              inds=[i for i,line in enumerate(lines) if needle in line]
+              print("SEARCH",needle,"COUNT",len(inds),"FIRST",inds[:10])
+              for i in inds[:5]:
+                  print("-----",needle,"line",i+1,"-----")
+                  print("\n".join("%s: %s"%(j+1,lines[j][:300]) for j in range(max(0,i-8), min(len(lines),i+12))))
+          try:
+              root=ET.fromstring(xml)
+              print("XML valid:",root.tag)
+              for elem in root.iter("control"):
+                  if elem.attrib.get("id") in ("9101","9102","9103","9104","9105","9111","9112","9113"):
+                      print("NAV CONTROL:",ET.tostring(elem,encoding="unicode")[:2800])
+          except Exception as ex:print("XML parse failed",ex)
+          PY
