@@ -103,7 +103,19 @@ def classify(item):
 def make_item(row):
     title = row.get("label") or row.get("title") or "Untitled"
     item = xbmcgui.ListItem(label=str(title))
-    art = dict(row.get("art") or {})
+    raw_art=row.get("art") or {}
+    art = dict(raw_art) if isinstance(raw_art,dict) else {}
+    # Kodi JSON-RPC may return Dex Hub's art under a top-level key,
+    # especially for Continue Watching episodes and TV parent titles.
+    for source_key,dest in (("clearlogo","clearlogo"),
+                            ("logo","clearlogo"),
+                            ("tvshow.clearlogo","tvshow.clearlogo"),
+                            ("clearart","clearart")):
+        value=row.get(source_key)
+        if value and not art.get(dest):
+            art[dest]=str(value)
+    if art.get("tvshow.clearlogo") and not art.get("clearlogo"):
+        art["clearlogo"]=art["tvshow.clearlogo"]
     if row.get("thumbnail"):
         art.setdefault("thumb", row["thumbnail"])
         art.setdefault("poster", row["thumbnail"])
