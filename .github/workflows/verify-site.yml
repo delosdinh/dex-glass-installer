@@ -1,0 +1,60 @@
+name: Verify public Kodi installer URLs
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/verify-site.yml"
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Check live GitHub Pages URLs and Kodi metadata
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, io, time, urllib.error, urllib.request, zipfile
+          import xml.etree.ElementTree as ET
+          base="https://delosdinh.github.io/dex-glass-installer/"
+          paths=["", "addons.xml", "addons.xml.md5",
+                 "repository.dexglass-1.0.0.zip",
+                 "repository.dexglass/repository.dexglass-1.0.0.zip",
+                 "skin.dexglass/skin.dexglass-0.1.0.zip"]
+          responses={}
+          for path in paths:
+              for attempt in range(3):
+                  try:
+                      with urllib.request.urlopen(urllib.request.Request(base+path,headers={"User-Agent":"Kodi-Installer-Check/1.0"}),timeout=20) as response:
+                          data=response.read()
+                          code=response.status
+                          ct=response.headers.get("Content-Type")
+                      print(f"{path or '(index)'}: HTTP {code}, {len(data)} bytes, {ct}", flush=True)
+                      responses[path]=data
+                      break
+                  except Exception as err:
+                      print(f"{path}: attempt {attempt+1}: {err}",flush=True)
+                      if attempt<2:time.sleep(8)
+                      else:raise
+          xml=ET.fromstring(responses["addons.xml"])
+          ids={addon.get("id") for addon in xml}
+          assert ids == {"repository.dexglass","skin.dexglass"},ids
+          md5=hashlib.md5(responses["addons.xml"]).hexdigest()
+          assert responses["addons.xml.md5"].decode().strip()==md5
+          with zipfile.ZipFile(io.BytesIO(responses["repository.dexglass-1.0.0.zip"])) as z:
+              assert z.testzip() is None
+              root=ET.fromstring(z.read("repository.dexglass/addon.xml"))
+              assert root.get("id")=="repository.dexglass"
+              urls={e.tag:e.text for e in root.findall(".//extension[@point='xbmc.addon.repository']/dir/*")}
+              assert urls["info"]==base+"addons.xml",urls
+              assert urls["checksum"]==base+"addons.xml.md5",urls
+              assert urls["datadir"]==base,urls
+          with zipfile.ZipFile(io.BytesIO(responses["skin.dexglass/skin.dexglass-0.1.0.zip"])) as z:
+              assert z.testzip() is None
+              skin=ET.fromstring(z.read("skin.dexglass/addon.xml"))
+              assert skin.get("id")=="skin.dexglass"
+          index=responses[""].decode("utf8")
+          assert '<a href="repository.dexglass-1.0.0.zip">repository.dexglass-1.0.0.zip</a>' in index
+          print("Live installer URLs and repository metadata: PASS")
+          PY
