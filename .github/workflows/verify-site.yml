@@ -58,7 +58,7 @@ jobs:
               assert skin.get("id")=="skin.dexglass"
               assert skin.get("version")=="0.4.0"
               home=ET.fromstring(z.read("skin.dexglass/xml/Home.xml"))
-              feeds=[e.text for e in home.iter("content") if (e.text or "").startswith("plugin://plugin.video.dexhub/")]
+              feeds=[e.text for e in home.iter("content") if (e.text or "").startswith("plugin://")]
               assert len(feeds)==6, feeds
               assert sum("plugin.video.dexglass.bridge" in r for r in feeds)==2
               assert len(list(home.iter("item")))==4
