@@ -1,0 +1,72 @@
+name: Publish Dex Glass Kodi installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/publish.yml"
+      - "build/build_skin.py"
+      - "tools/generate_assets.py"
+      - "installer/generate_repo.py"
+      - "README.md"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: dexglass-pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    name: Package and publish Kodi repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out installer source
+        uses: actions/checkout@v4
+
+      - name: Build original artwork
+        run: python3 tools/generate_assets.py
+
+      - name: Package standalone Kodi test skin from verified Pyrus release
+        run: python3 build/build_skin.py
+
+      - name: Build Kodi repository and installer page
+        run: python3 installer/generate_repo.py
+
+      - name: Validate site
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          import xml.etree.ElementTree as ET
+          out = Path("dist/site")
+          root = ET.parse(out / "addons.xml").getroot()
+          assert {addon.attrib["id"] for addon in root} == {"skin.dexglass", "repository.dexglass"}
+          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.1.0.zip") as z:
+              assert z.testzip() is None
+              assert ET.fromstring(z.read("skin.dexglass/addon.xml")).get("id") == "skin.dexglass"
+          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.0.zip") as z:
+              assert z.testzip() is None
+          print("Validated ZIP and metadata for GitHub Pages")
+          PY
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/site
+
+      - name: Publish site
+        id: deployment
+        uses: actions/deploy-pages@v4
