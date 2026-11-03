@@ -124,11 +124,14 @@ def build(skin_zip, out):
         '<tr><td><a href="' + repo_name + '">' + repo_name + '</a></td>'
         '<td>Repository installer ZIP</td></tr>'
         '<tr><td><a href="' + skin_name + '">' + skin_name + '</a></td>'
-        '<td>Direct skin ZIP</td></tr>'
+        '<td>Direct skin ZIP - install after companion</td></tr>'
+        '<tr><td><a href="' + bridge_name + '">' + bridge_name + '</a></td>'
+        '<td>Media bridge ZIP - install FIRST for split Continue Watching rows</td></tr>'
         '</table>'
-        '<p>In Kodi, add <code>' + HOST + '</code> as a File Manager source, '
-        'then choose <strong>Install from ZIP file</strong> and select '
-        '<code>' + repo_name + '</code>.</p>'
+        '<p>In Kodi, add <code>' + HOST + '</code> as a File Manager source. '
+        'Under Install from ZIP file, install <strong>' + bridge_name + '</strong> '
+        'first, then <strong>' + skin_name + '</strong>. '
+        'The optional repository ZIP may not connect on all CoreELEC systems.</p>'
         '<p>Then open <strong>Install from repository - Dex Glass Repository - '
         'Look and feel - Skin</strong>.</p>'
         '<p><small>Based on Pyrus by kamilwhoo and Team Kodi Estuary; '
@@ -144,7 +147,7 @@ def build(skin_zip, out):
         index, flags=re.IGNORECASE
     )
     visible = {href for href, label, _ in parsed if href == label.strip()}
-    if {repo_name, skin_name} != visible:
+    if {repo_name, skin_name, bridge_name} != visible:
         raise ValueError("Website HTML directory links are not Kodi-compatible: " + str(visible))
     (out / "index.html").write_text(index, encoding="utf-8")
     (out / "README.txt").write_text(
@@ -153,8 +156,9 @@ def build(skin_zip, out):
     with zipfile.ZipFile(repository_zip) as z:
         assert z.testzip() is None
         assert ET.fromstring(z.read(REPO_ID + "/addon.xml")).get("id") == REPO_ID
-    assert len(ET.parse(out / "addons.xml").getroot()) == 2
+    assert len(ET.parse(out / "addons.xml").getroot()) == 3
     assert (skin_dir / (SKIN_ID + "-" + SKIN_VERSION + ".zip")).is_file()
+    assert bridge_zip.is_file()
     print("Built Kodi repository and installer site in", out)
     print("Publish at:", HOST)
 
