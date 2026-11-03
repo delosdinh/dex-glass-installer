@@ -77,25 +77,37 @@ def build(skin_zip, out):
     (out / "addons.xml").write_bytes(addons_xml)
     (out / "addons.xml.md5").write_text(hashlib.md5(addons_xml).hexdigest(), encoding="ascii")
     (out / "addons.xml.sha256").write_text(hashlib.sha256(addons_xml).hexdigest(), encoding="ascii")
+    # Kodi's CHTTPDirectory parser accepts links only when the visible anchor text
+    # is exactly the relative href filename (plus metadata after the closing tag).
+    # A styled download button with another label looks fine in browsers but is
+    # invisible in Kodi's "Install from ZIP file" HTTP file browser.
+    repo_name = REPO_ID + "-" + REPO_VERSION + ".zip"
+    skin_name = SKIN_ID + "-" + SKIN_VERSION + ".zip"
     index = (
         '<!doctype html><html lang="en-AU"><head><meta charset="utf-8">'
-        '<meta name="viewport" content="width=device-width, initial-scale=1">'
-        '<title>Dex Glass Kodi Repository</title>'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<title>Index of /dex-glass-installer/ - Dex Glass Kodi Repository</title>'
         '<style>body{font:16px/1.65 system-ui,sans-serif;background:#090f1c;'
-        'color:#f0f6ff;max-width:780px;margin:10vh auto;padding:24px}'
-        'a{color:#a8d8ff}li{margin:12px 0}small{color:#acb8d0}</style></head><body>'
-        '<h1>Dex Glass — Kodi Installer</h1>'
-        '<p>Experimental Kodi skin. The proprietary Dex Hub add-on is <strong>not</strong> included.</p>'
-        '<ol><li><a href="' + REPO_ID + '-' + REPO_VERSION + '.zip">'
-        'Install Dex Glass Repository</a></li>'
-        '<li><a href="' + SKIN_ID + '-' + SKIN_VERSION + '.zip">'
-        'Install Dex Glass skin directly</a></li></ol>'
-        '<p>In Kodi add <code>' + HOST + '</code> as a File Manager source. '
-        'Install the repository ZIP, then select '
-        '<strong>Install from repository → Dex Glass Repository → Look and feel → Skin</strong>.</p>'
-        '<p><small>Based on Pyrus by kamilwhoo and Estuary/Team Kodi. '
-        'Original licensing notices are preserved; Apple SF Pro font binaries are excluded. '
-        'Not affiliated with Apple, Pyrus, DexWorld or Team Kodi.</small></p></body></html>'
+        'color:#f0f6ff;max-width:790px;margin:9vh auto;padding:24px}'
+        'a{color:#a8d8ff}pre{padding:18px;background:#15223c;overflow-x:auto;'
+        'border:1px solid #41506c;border-radius:12px;line-height:2.4}'
+        'small{color:#acb8d0}code{color:#e1ecff}</style></head><body>'
+        '<h1>Index of /dex-glass-installer/</h1>'
+        '<p>Dex Glass - experimental Kodi skin repository. '
+        'The proprietary Dex Hub add-on is not bundled.</p>'
+        '<pre>'
+        '<a href="' + repo_name + '">' + repo_name + '</a>    Repository installer ZIP\n'
+        '<a href="' + skin_name + '">' + skin_name + '</a>    Direct skin ZIP\n'
+        '</pre>'
+        '<p>In Kodi, add <code>' + HOST + '</code> as a File Manager source, '
+        'then choose <strong>Install from ZIP file</strong> and select '
+        '<code>' + repo_name + '</code>.</p>'
+        '<p>Then open <strong>Install from repository - Dex Glass Repository - '
+        'Look and feel - Skin</strong>.</p>'
+        '<p><small>Based on Pyrus by kamilwhoo and Team Kodi Estuary; '
+        'upstream notices preserved. Apple SF Pro binaries excluded. '
+        'Not affiliated with Apple, Pyrus, DexWorld or Kodi.</small></p>'
+        '</body></html>'
     )
     (out / "index.html").write_text(index, encoding="utf-8")
     (out / "README.txt").write_text(
