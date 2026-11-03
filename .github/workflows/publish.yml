@@ -68,7 +68,7 @@ jobs:
           out = Path("dist/site")
           root = ET.parse(out / "addons.xml").getroot()
           assert {addon.attrib["id"] for addon in root} == {"skin.dexglass", "repository.dexglass", "plugin.video.dexglass.bridge"}
-          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.6.0.zip") as z:
+          with ZipFile(out / "skin.dexglass" / "skin.dexglass-0.6.1.zip") as z:
               assert z.testzip() is None
               assert ET.fromstring(z.read("skin.dexglass/addon.xml")).get("id") == "skin.dexglass"
               home = ET.fromstring(z.read("skin.dexglass/xml/Home.xml"))
@@ -91,7 +91,7 @@ jobs:
               assert z.read("skin.dexglass/xml/DexGlass_Variables.xml").count(b"DG_Fanart")>0
               deps=ET.fromstring(z.read("skin.dexglass/addon.xml")).findall("requires/import")
               assert any(i.get("addon")=="plugin.video.dexglass.bridge" for i in deps)
-          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.6.zip") as z:
+          with ZipFile(out / "repository.dexglass" / "repository.dexglass-1.0.7.zip") as z:
               assert z.testzip() is None
           with ZipFile(out / "plugin.video.dexglass.bridge" / "plugin.video.dexglass.bridge-0.3.0.zip") as z:
               assert z.testzip() is None
