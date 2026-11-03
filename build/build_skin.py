@@ -9,6 +9,7 @@ import re
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
+from liquid_glass import style_home
 
 URL = "https://github.com/kamilfotoveci-design/applify/releases/download/v1.1.6/skin.applify-1.1.6.zip"
 EXPECTED = "2e36befee29fa4f904f7a4e27d85779a504e23a963c646224019dc98e6a7cd9c"
@@ -33,7 +34,7 @@ def addon_xml(data):
         raise ValueError("Not the expected Pyrus skin")
     element.attrib.update({"id":"skin.dexglass",
                            "name":"Dex Glass (Preview)",
-                           "version":"0.1.0",
+                           "version":"0.2.0",
                            "provider-name":"Dex Glass; based on Pyrus by kamilwhoo"})
     meta = element.find("extension[@point='xbmc.addon.metadata']")
     if meta is not None:
@@ -78,6 +79,8 @@ def build(source, dest, assets):
                 data = addon_xml(data)
             elif name == "resources/home_hubs.py":
                 data = home_hubs(data)
+            elif name == "xml/Home.xml":
+                data = style_home(data)
             elif name == "xml/Font.xml":
                 data = data.replace(b"sf-pro-display-regular.ttf", b"OrchardUI-Regular.ttf")
                 data = data.replace(b"sf-pro-display-semibold.ttf", b"OrchardUI-Semibold.ttf")
@@ -95,7 +98,7 @@ def build(source, dest, assets):
             files["media/dexglass/" + asset.relative_to(assets).as_posix()] = asset.read_bytes()
             count += 1
         print("Included original Dex Glass assets:", count)
-    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass preview 0.1.0
+    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass preview 0.2.0
 
 Based on Pyrus v1.1.6 by kamilwhoo and Estuary/Team Kodi.
 Pyrus/Estuary licences and notices are preserved. Apple SF Pro font
@@ -105,8 +108,8 @@ The Add-ons hub in this experimental skin now opens the separately
 installed official Dex Hub plugin at plugin://plugin.video.dexhub/.
 This does not embed or modify any Dex Hub code or service.
 
-This is NOT the final Dex Glass: real Dex Hub homepage rows,
-detail pages, complete Liquid Glass shaders, playback overlays and
+This preview adds real Kodi Liquid Lens navigation assets.\nReal Dex Hub homepage rows,
+detail pages, full optical Liquid Glass shaders, playback overlays and
 CoreELEC-specific integration are not yet implemented/tested.
 The first goal is to verify independent skin installation and launcher.
 You can always switch back using Kodi Settings > Interface > Skin.
@@ -136,7 +139,7 @@ You can always switch back using Kodi Settings > Interface > Skin.
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", help="Local official Pyrus v1.1.6 ZIP; optional in GitHub Actions")
-    parser.add_argument("--output", default="dist/skin.dexglass-0.1.0.zip")
+    parser.add_argument("--output", default="dist/skin.dexglass-0.2.0.zip")
     parser.add_argument("--assets", default="build/media/dexglass")
     args = parser.parse_args()
     build(source_zip(args.source), Path(args.output), Path(args.assets))
