@@ -98,6 +98,33 @@ def lens_shadow(x, y):
     inside=max(0,min(edge_x,edge_y))
     return 1,7,17,int(60*inside)
 
+
+def _round_alpha(x,y,w,h,r):
+    cx=min(max(x,r),w-1-r)
+    cy=min(max(y,r),h-1-r)
+    d=math.hypot(x-cx,y-cy)
+    return max(0,min(1, r+0.75-d))
+
+def tile_mask(x,y,w=400,h=240):
+    a=int(255*_round_alpha(x,y,w,h,20))
+    return 255,255,255,a
+
+def tile_vignette(x,y,w=512,h=320):
+    shape=_round_alpha(x,y,w,h,22)
+    bottom=max(0,min(1,(y/h-.37)/.63))
+    alpha=int(shape*(12+210*bottom**1.7))
+    return 2,5,12,alpha
+
+def tile_edge(x,y,w=512,h=320):
+    a=_round_alpha(x,y,w,h,23)
+    bx=min(max(x,23),w-1-23)
+    by=min(max(y,23),h-1-23)
+    inner=math.hypot(x-bx,y-by)
+    edge=max(0,min(1,(inner-19)/4))
+    top=max(0,1-y/42)
+    alpha=int(175*a*edge+65*a*top)
+    return 230,248,255,min(235,alpha)
+
 def main():
     png(OUT / "hero-scrim.png", 1920, 1080, scrim)
     png(OUT / "fallback.png", 1920, 1080, fallback)
@@ -106,6 +133,10 @@ def main():
     png(OUT / "nav-surface.png", 1150, 86, nav_surface)
     png(OUT / "nav-lens.png", 256, 64, lens)
     png(OUT / "nav-shadow.png", 256, 90, lens_shadow)
+    png(OUT / "tile-mask-wide.png", 400, 240, lambda x,y:tile_mask(x,y,400,240))
+    png(OUT / "tile-mask-poster.png", 240, 320, lambda x,y:tile_mask(x,y,240,320))
+    png(OUT / "tile-shade.png", 512, 320, tile_vignette)
+    png(OUT / "tile-glow.png", 512, 320, tile_edge)
     print("Generated original artwork in", OUT)
 
 
