@@ -34,8 +34,15 @@ def addon_xml(data):
         raise ValueError("Not the expected Pyrus skin")
     element.attrib.update({"id":"skin.dexglass",
                            "name":"Dex Glass (Preview)",
-                           "version":"0.3.0",
+                           "version":"0.4.0",
                            "provider-name":"Dex Glass; based on Pyrus by kamilwhoo"})
+    requirements = element.find("requires")
+    if requirements is None:
+        requirements = ET.Element("requires")
+        element.insert(0,requirements)
+    ET.SubElement(requirements, "import", {
+        "addon":"plugin.video.dexglass.bridge", "version":"0.1.0"
+    })
     meta = element.find("extension[@point='xbmc.addon.metadata']")
     if meta is not None:
         for child in meta:
@@ -102,11 +109,13 @@ def build(source, dest, assets):
             files["media/dexglass/" + asset.relative_to(assets).as_posix()] = asset.read_bytes()
             count += 1
         print("Included original Dex Glass assets:", count)
-    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass original Home preview v0.3.0
+    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass original Home preview v0.4.0
 
 Kodi Home.xml has been replaced with a newly authored 1920x1080 TV interface:
-a centred clear-glass navigation menu, full-screen focus-responsive fanart,
-and seven horizontal Dex Hub plugin-fed rails in the requested order.
+a centred clear-glass navigation menu with working utility icons, full-screen focus-responsive fanart,
+and seven horizontal rails in the requested order. Movie/episode Continue Watching
+are filtered by the original separate Dex Glass bridge plugin via Kodi JSON-RPC.
+The Kaptain collection rail opens Dex Hub's native Dex Community screen.
 The original Pyrus Home.xml has NOT been reused. Other Kodi windows and
 fonts remain based on the Pyrus/Estuary framework, with licences preserved.
 
@@ -115,9 +124,9 @@ Dex Hub add-on; no Dex Hub source, assets, credentials, or authentication are
 included in this package. Film/episode details and playback actions are
 provided by the official add-on when its native list items are selected.
 
-Unverified: whether Dex Hub returns the correct separated media types in
-every route, remote directional navigation, item art quality, and CoreELEC
-device playback. Do not rely on this build as a full replacement yet.
+Requires plugin.video.dexglass.bridge version 0.1.0, installed separately.
+Unverified: how Kodi JSON-RPC classifies all Dex Hub items on this device,
+remote directional navigation, item art quality, and CoreELEC playback. Do not rely on this build as a full replacement yet.
 For fallback use Settings > Interface > Skin to restore your previous skin.
 """
     # Pyrus diagnostics reference this manifest; recalculate for modified files.
@@ -148,7 +157,7 @@ For fallback use Settings > Interface > Skin to restore your previous skin.
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", help="Local official Pyrus v1.1.6 ZIP; optional in GitHub Actions")
-    parser.add_argument("--output", default="dist/skin.dexglass-0.3.0.zip")
+    parser.add_argument("--output", default="dist/skin.dexglass-0.4.0.zip")
     parser.add_argument("--assets", default="build/media/dexglass")
     args = parser.parse_args()
     build(source_zip(args.source), Path(args.output), Path(args.assets))
