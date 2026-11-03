@@ -278,7 +278,7 @@ def create_home():
           "$INFO[Window(Home).Property(dg.hero.clearlogo)]",
           aspect="keep",visible=logo_present,fade=200)
     label(controls,86,235,1025,160,"$VAR[DG_Title]","font60","FFFFFFFF",
-          visible="!"+logo_present)
+          visible="String.IsEmpty(Window(Home).Property(dg.hero.clearlogo))")
     label(controls,88,405,800,42,
           "$VAR[DG_Year]   •   $VAR[DG_Genre]   •   ★ $VAR[DG_Rating]",
           "font25_title","FFECF1FA")
