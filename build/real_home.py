@@ -24,8 +24,8 @@ ROWS = (
 IDS = tuple(5101+i for i in range(len(ROWS)))
 
 
-def el(parent, name, value=None, **attrs):
-    node=ET.SubElement(parent,name,{k:str(v) for k,v in attrs.items()})
+def el(parent, tag, value=None, **attrs):
+    node=ET.SubElement(parent,tag,{k:str(v) for k,v in attrs.items()})
     if value is not None:
         node.text=str(value)
     return node
