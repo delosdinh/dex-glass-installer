@@ -9,7 +9,7 @@ import re
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
-from real_home import create_home, create_variables, patch_includes, check_home
+from real_home_pages import create_home, create_variables, patch_includes, check_home
 from dexglass_settings import create_settings
 
 URL = "https://github.com/kamilfotoveci-design/applify/releases/download/v1.1.6/skin.applify-1.1.6.zip"
@@ -35,14 +35,14 @@ def addon_xml(data):
         raise ValueError("Not the expected Pyrus skin")
     element.attrib.update({"id":"skin.dexglass",
                            "name":"Dex Glass (Preview)",
-                           "version":"0.5.0",
+                           "version":"0.6.0",
                            "provider-name":"Dex Glass; based on Pyrus by kamilwhoo"})
     requirements = element.find("requires")
     if requirements is None:
         requirements = ET.Element("requires")
         element.insert(0,requirements)
     ET.SubElement(requirements, "import", {
-        "addon":"plugin.video.dexglass.bridge", "version":"0.2.0"
+        "addon":"plugin.video.dexglass.bridge", "version":"0.3.0"
     })
     meta = element.find("extension[@point='xbmc.addon.metadata']")
     if meta is not None:
@@ -122,29 +122,23 @@ def build(source, dest, assets):
             files["media/dexglass/" + asset.relative_to(assets).as_posix()] = asset.read_bytes()
             count += 1
         print("Included original Dex Glass assets:", count)
-    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass original Home preview v0.5.0
+    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass native home v0.6.0
 
-This skin has an original cinematic Home.xml and now an original Kodi
-SkinSettings.xml; no Pyrus home editor is exposed to users of Dex Glass.
-The official Dex Hub package is never modified.
+Original Kodi Home.xml includes separate Watch Now, Movies, TV Shows and
+Collections hubs, 12 per-page configurable rows, a restrained glass focus,
+and full-screen focused title fanart. No permanent Dex Hub home-tab branding.
 
-Use Dex Glass Settings > Add/replace Kaptain catalogue to select a
-group > folder > catalogue from the installed official Dex Hub data.
-The separate Dex Glass Media Bridge (plugin.video.dexglass.bridge v0.2.0)
-saves selections exclusively in its own Kodi profile and sets per-skin
-visibility strings. The custom Kaptain rails feed real Kodi widgets
-through the selected official Dex Hub public catalogue routes.
-Four custom rails are available after the seven pre-existing home rows.
+The separately installed original bridge plugin version 0.3.0 provides
+a page-aware, source-and-order row editor and native search dialog,
+segregated Continue Watching and optional local cached title clearlogos.
+Kaptain catalogues are chosen by group/folder/source from the official
+installed Dex Hub add-on and persisted only in Dex Glass.
+On Kodi startup the bridge service rehydrates the saved skin row labels.
+Prior v0.5 user collections are preserved and migrated into Watch Now.
 
-This is experimental: Dex Hub's community.groups() Python API is an
-internal module read ONLY at runtime from the installed add-on. If a
-Dex Hub update changes it, the picker will display an explicit warning.
-Kaptain widget loading via Kodi JSON-RPC needs CoreELEC testing;
-a failed catalogue has a clickable fallback to its official route.
-
-Pyrus/Estuary remains a licensed base for secondary Kodi windows.
-Inter fonts licensed under OFL replace Apple SF Pro; no Apple fonts shipped.
-Keep your prior skin installed and switch back from Kodi Interface > Skin.
+Pyrus/Estuary retains the secondary Kodi screens and licences.
+No Dex Hub source is included or modified. This is NOT a full feature parity
+release; trailers, player overlays and cast/crew details remain to build.
 """
     # Pyrus diagnostics reference this manifest; recalculate for modified files.
     manifest_name = "resources/package-sha256.json"
@@ -174,7 +168,7 @@ Keep your prior skin installed and switch back from Kodi Interface > Skin.
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", help="Local official Pyrus v1.1.6 ZIP; optional in GitHub Actions")
-    parser.add_argument("--output", default="dist/skin.dexglass-0.5.0.zip")
+    parser.add_argument("--output", default="dist/skin.dexglass-0.6.0.zip")
     parser.add_argument("--assets", default="build/media/dexglass")
     args = parser.parse_args()
     build(source_zip(args.source), Path(args.output), Path(args.assets))
