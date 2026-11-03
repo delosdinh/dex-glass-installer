@@ -116,7 +116,7 @@ def build(skin_zip, out):
     # future styling edits cannot silently make ZIPs invisible in Kodi.
     import re
     parsed = re.findall(
-        r'<a href="([^"]*)"[^>]*>\\s*(.*?)\\s*</a>(.+?)(?=<a|</tr|$)',
+        r'<a href="([^"]*)"[^>]*>\s*(.*?)\s*</a>(.+?)(?=<a|</tr|$)',
         index, flags=re.IGNORECASE
     )
     visible = {href for href, label, _ in parsed if href == label.strip()}
