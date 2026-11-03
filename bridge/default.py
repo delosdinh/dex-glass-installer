@@ -202,18 +202,96 @@ def collection_slot(handle, slot):
     xbmcplugin.endOfDirectory(handle,cacheToDisc=False)
 
 
+def _list_items(handle, entries):
+    accepted=0
+    for obj in entries[:90]:
+        path=str(obj.get("file") or "")
+        if not (path.startswith("plugin://plugin.video.dexhub/") or
+                path.startswith("videodb://")):
+            continue
+        is_folder=str(obj.get("filetype") or "").lower()=="directory"
+        xbmcplugin.addDirectoryItem(handle,path,make_item(obj),isFolder=is_folder)
+        accepted+=1
+    return accepted
+
+
+def _row_note(handle,label,url):
+    li=xbmcgui.ListItem(label=label)
+    li.setProperty("dexglass.bridge.note","1")
+    xbmcplugin.addDirectoryItem(handle,url,li,isFolder=True)
+
+
+def _actions_row(handle):
+    """Browse/add/arrange *Dex Glass* collections rather than Dex Hub settings."""
+    cards=(
+        ("Add Kaptain Catalogue","Choose a group and its actual content",
+         "collection-kaptain.png","plugin://plugin.video.dexglass.bridge/?action=add"),
+        ("Customise All Rows","Change Watch Now, Movies and TV Shows",
+         "collection-community.png","plugin://plugin.video.dexglass.bridge/?action=configure"),
+        ("Open Dex Community","Browse the original catalogue catalogue",
+         "collection-imports.png","plugin://plugin.video.dexhub/?action=home_community"),
+    )
+    for title,subtitle,asset,url in cards:
+        item=xbmcgui.ListItem(label=title,label2=subtitle)
+        item.setArt({"thumb":"special://skin/media/dexglass/"+asset,
+                     "landscape":"special://skin/media/dexglass/"+asset})
+        xbmcplugin.addDirectoryItem(handle,url,item,isFolder=True)
+    xbmcplugin.endOfDirectory(handle,cacheToDisc=False)
+
+
+def home_row(handle,page,slot):
+    """One of 12 freely reorderable native widgets in each Dex Glass hub."""
+    from home_config import row_at,source_of,name_of
+    selected=row_at(page,slot)
+    xbmcplugin.setContent(handle,"videos")
+    if not selected:
+        xbmcplugin.endOfDirectory(handle,cacheToDisc=False)
+        return
+    source=source_of(selected)
+    if source=="actions:collections":
+        _actions_row(handle)
+        return
+    if source in ("bridge:movie","bridge:series"):
+        kind=source.split(":",1)[1]
+        items=[x for x in read_continue() if classify(x)==kind]
+        count=_list_items(handle,items)
+        if not count:
+            _row_note(handle,"Open Continue Watching in Dex Hub",SOURCE)
+        xbmcplugin.endOfDirectory(handle,cacheToDisc=False)
+        return
+    url=source if source.startswith("plugin://plugin.video.dexhub/") else (
+        "plugin://plugin.video.dexhub/?"+source)
+    if not url.startswith("plugin://plugin.video.dexhub/?"):
+        xbmcplugin.endOfDirectory(handle,cacheToDisc=False)
+        return
+    listed=read_catalogue(url)
+    accepted=_list_items(handle,listed)
+    if not accepted:
+        _row_note(handle,"Open "+name_of(selected)+" in Dex Hub",url)
+    xbmcplugin.endOfDirectory(handle,cacheToDisc=False)
+
+
 def run():
     query=parse_qs((sys.argv[2] if len(sys.argv)>2 else "").lstrip("?"))
     action=(query.get("action") or [""])[0]
     # RunPlugin() invokes a video add-on with handle=-1; these are Kodi
     # dialogues, not listings. They must run before parsing the handle.
-    if action in ("configure","add"):
-        from custom_collections import configure, add
-        (add if action=="add" else configure)()
+    if action in ("configure","add","reset"):
+        from home_config import configure,add,reset
+        {"configure":configure,"add":add,"reset":reset}[action]()
+        return
+    if action == "search":
+        from search import open_search
+        open_search(rpc)
         return
     try:
         handle = int(sys.argv[1])
     except (IndexError, ValueError):
+        return
+    if action == "row":
+        home_row(handle,
+                 (query.get("page") or ["watch"])[0],
+                 (query.get("slot") or ["1"])[0])
         return
     if action == "slot":
         collection_slot(handle,(query.get("slot") or ["1"])[0])
