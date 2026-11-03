@@ -11,15 +11,16 @@ Dex Hub is an optional external plugin: its routes are invoked by Kodi.
 import xml.etree.ElementTree as ET
 
 DEX = "plugin://plugin.video.dexhub/"
+BRIDGE = "plugin://plugin.video.dexglass.bridge/"
 ROWS = (
     # label, external public plugin route, presentation
-    ("Continue Watching Movies", "action=continue&media=movie", "wide"),
+    ("Continue Watching Movies", "bridge:movie", "wide"),
     ("Recently Watched Movies", "action=recently_watched&media=movie", "poster"),
-    ("Continue Watching Episodes", "action=continue&media=series", "wide"),
+    ("Continue Watching Episodes", "bridge:series", "wide"),
     ("Next Episodes", "action=nextup", "wide"),
     ("Recently Watched Series", "action=recently_watched&media=series", "poster"),
     ("Recommended for You", "action=lib_because&media=movie", "poster"),
-    ("Dex Collections", "action=collection_sets", "wide"),
+    ("Dex Collections", "collections:static", "wide"),
 )
 IDS = tuple(5101+i for i in range(len(ROWS)))
 
@@ -79,14 +80,15 @@ def textbox(parent,x,y,w,h,text,size="font14",color="FFE4EAF4"):
     return node
 
 
-def pill_button(parent, ident, x, y, w, text, onclick, left=None, right=None, down=5101):
+def pill_button(parent, ident, x, y, w, text, onclick, left=None, right=None, down=5101, icon=None):
     group=control(parent,"group",x,y,w,64)
     image(group,0,0,w,62,"dexglass/nav-shadow.png",border="28,20,28,20",
           visible=f"Control.HasFocus({ident})")
     image(group,0,0,w,62,"dexglass/nav-lens.png",border="24,20,24,20",
           visible=f"Control.HasFocus({ident})")
     node=control(group,"button",0,0,w,62,ident)
-    el(node,"label",text)
+    el(node,"label","" if icon else text)
+    el(node,"description",text)
     el(node,"font","font25_title")
     el(node,"textcolor","FFDCE8F9")
     el(node,"focusedcolor","FFFFFFFF")
@@ -102,6 +104,8 @@ def pill_button(parent, ident, x, y, w, text, onclick, left=None, right=None, do
     el(node,"onup",ident)
     el(node,"ondown",down)
     el(node,"onback","ActivateWindow(ShutdownMenu)")
+    if icon:
+        image(group,(w-46)//2,8,46,46,"dexglass/icon-"+icon+".png")
     return group
 
 
@@ -213,11 +217,11 @@ def create_home():
         (1001,515,166,"Watch Now","SetFocus(5101)"),
         (1002,684,136,"Movies",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/?action=nuvio_home_media&media=movie",return)'),
         (1003,824,148,"TV Shows",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/?action=nuvio_home_media&media=series",return)'),
-        (1004,980,195,"Collections",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/?action=collection_sets",return)'),
+        (1004,980,195,"Collections","RunPlugin(plugin://plugin.video.dexhub/?action=home_community)"),
         (1005,1177,167,"Dex Hub",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/",return)'),
-        (1006,1542,104,"Search",'ActivateWindow(Videos,"plugin://plugin.video.dexhub/?action=search",return)'),
-        (1007,1650,100,"Settings","ActivateWindow(SkinSettings)"),
-        (1008,1752,104,"Power","ActivateWindow(ShutdownMenu)"),
+        (1006,1538,96,"Search","RunPlugin(plugin://plugin.video.dexhub/?action=home_search)"),
+        (1007,1644,96,"Settings","ActivateWindow(SkinSettings)"),
+        (1008,1750,96,"Power","ActivateWindow(ShutdownMenu)"),
     )
     for k,(ident,x,w,text,action) in enumerate(navigation):
         pill_button(controls,ident,x,45,w,text,action,
