@@ -13,7 +13,7 @@ Once the automated deployment is successful, the public landing page is intended
 1. In Kodi: **Settings → File Manager → Add source**.
 2. Enter the published URL, name it **Dex Glass**, and save.
 3. Navigate to **Add-ons → Install from ZIP file → Dex Glass**.
-4. Install `repository.dexglass-1.0.0.zip`.
+4. Install `repository.dexglass-1.0.1.zip` (replaces the original repository package).
 5. Choose **Install from repository → Dex Glass Repository → Look and feel → Skin → Dex Glass (Preview)**.
 
 If the File Manager's HTTP directory browser does not list the ZIP, open the public site in a browser and use its direct links, or try the alternative URL-specific install instructions. **Do not claim installation works until the site is live and tested on a Kodi device.**
