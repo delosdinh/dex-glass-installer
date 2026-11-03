@@ -134,13 +134,79 @@ def note(handle, text):
         item, isFolder=True)
 
 
+def read_catalogue(url):
+    """Get work cards from an installed Dex Hub collection's public route."""
+    expected=["title","plot","year","genre","rating","art","thumbnail",
+              "showtitle","season","episode"]
+    last_error=None
+    for mode, fields in (("video",expected),
+                         ("video",["title","art","thumbnail"]),
+                         ("files",["title","art","thumbnail"]),
+                         ("files",None)):
+        try:
+            items=rpc(url,mode,fields)
+            if items:
+                return items
+        except Exception as exc:
+            last_error=exc
+    if last_error:
+        log("Kaptain widget catalogue: %s" % type(last_error).__name__,
+            xbmc.LOGWARNING)
+    return []
+
+
+def collection_slot(handle, slot):
+    """Render a saved Dex Glass collection as its own horizontal Kodi row."""
+    from custom_collections import current_slot
+    data=current_slot(slot)
+    xbmcplugin.setContent(handle,"videos")
+    if not data:
+        xbmcplugin.endOfDirectory(handle,cacheToDisc=False)
+        return
+    url=data["url"]
+    try:
+        rows=read_catalogue(url)
+        accepted=0
+        for item in rows[:75]:
+            path=str(item.get("file") or "")
+            if not (path.startswith("plugin://plugin.video.dexhub/") or
+                    path.startswith("videodb://")):
+                continue
+            folder=str(item.get("filetype") or "").lower()=="directory"
+            xbmcplugin.addDirectoryItem(handle,path,make_item(item),isFolder=folder)
+            accepted+=1
+        # Keep a working pathway into the actual installed source even when
+        # metadata cannot be enumerated via Kodi JSON-RPC on a CoreELEC build.
+        if not accepted:
+            li=xbmcgui.ListItem(label="Open " + str(data["title"]) + " in Dex Hub")
+            li.setProperty("dexglass.bridge.note","1")
+            xbmcplugin.addDirectoryItem(handle,url,li,isFolder=True)
+        log("Kaptain widget slot %s: %d cards" % (slot,accepted))
+    except Exception as exc:
+        log("Kaptain widget slot %s failed: %s" % (slot,type(exc).__name__),
+            xbmc.LOGWARNING)
+        li=xbmcgui.ListItem(label="Open " + str(data["title"]) + " in Dex Hub")
+        xbmcplugin.addDirectoryItem(handle,url,li,isFolder=True)
+    xbmcplugin.endOfDirectory(handle,cacheToDisc=False)
+
+
 def run():
+    query=parse_qs((sys.argv[2] if len(sys.argv)>2 else "").lstrip("?"))
+    action=(query.get("action") or [""])[0]
+    # RunPlugin() invokes a video add-on with handle=-1; these are Kodi
+    # dialogues, not listings. They must run before parsing the handle.
+    if action in ("configure","add"):
+        from custom_collections import configure, add
+        (add if action=="add" else configure)()
+        return
     try:
         handle = int(sys.argv[1])
     except (IndexError, ValueError):
         return
+    if action == "slot":
+        collection_slot(handle,(query.get("slot") or ["1"])[0])
+        return
     try:
-        query = parse_qs(sys.argv[2].lstrip("?"))
         wanted = (query.get("media") or ["movie"])[0]
         if wanted not in ("movie", "series"):
             wanted = "movie"
