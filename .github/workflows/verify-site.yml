@@ -19,11 +19,11 @@ jobs:
           import xml.etree.ElementTree as ET
           base="https://delosdinh.github.io/dex-glass-installer/"
           paths=["", "addons.xml", "addons.xml.md5",
-                 "repository.dexglass-1.0.4.zip",
-                 "repository.dexglass/repository.dexglass-1.0.4.zip",
-                 "skin.dexglass/skin.dexglass-0.4.0.zip",
-                 "plugin.video.dexglass.bridge-0.1.0.zip",
-                 "plugin.video.dexglass.bridge/plugin.video.dexglass.bridge-0.1.0.zip"]
+                 "repository.dexglass-1.0.5.zip",
+                 "repository.dexglass/repository.dexglass-1.0.5.zip",
+                 "skin.dexglass/skin.dexglass-0.5.0.zip",
+                 "plugin.video.dexglass.bridge-0.2.0.zip",
+                 "plugin.video.dexglass.bridge/plugin.video.dexglass.bridge-0.2.0.zip"]
           responses={}
           for path in paths:
               for attempt in range(3):
@@ -44,7 +44,7 @@ jobs:
           assert ids == {"repository.dexglass","skin.dexglass","plugin.video.dexglass.bridge"},ids
           md5=hashlib.md5(responses["addons.xml"]).hexdigest()
           assert responses["addons.xml.md5"].decode().strip()==md5
-          with zipfile.ZipFile(io.BytesIO(responses["repository.dexglass-1.0.4.zip"])) as z:
+          with zipfile.ZipFile(io.BytesIO(responses["repository.dexglass-1.0.5.zip"])) as z:
               assert z.testzip() is None
               root=ET.fromstring(z.read("repository.dexglass/addon.xml"))
               assert root.get("id")=="repository.dexglass"
@@ -52,28 +52,35 @@ jobs:
               assert urls["info"]==base+"addons.xml",urls
               assert urls["checksum"]==base+"addons.xml.md5",urls
               assert urls["datadir"]==base,urls
-          with zipfile.ZipFile(io.BytesIO(responses["skin.dexglass/skin.dexglass-0.4.0.zip"])) as z:
+          with zipfile.ZipFile(io.BytesIO(responses["skin.dexglass/skin.dexglass-0.5.0.zip"])) as z:
               assert z.testzip() is None
               skin=ET.fromstring(z.read("skin.dexglass/addon.xml"))
               assert skin.get("id")=="skin.dexglass"
-              assert skin.get("version")=="0.4.0"
+              assert skin.get("version")=="0.5.0"
               home=ET.fromstring(z.read("skin.dexglass/xml/Home.xml"))
               feeds=[e.text for e in home.iter("content") if (e.text or "").startswith("plugin://")]
-              assert len(feeds)==6, feeds
-              assert sum("plugin.video.dexglass.bridge" in r for r in feeds)==2
+              assert len(feeds)==10, feeds
+              assert sum("plugin.video.dexglass.bridge" in r for r in feeds)==6
               assert len(list(home.iter("item")))==4
               assert "skin.dexglass/xml/DexGlass_Variables.xml" in z.namelist()
+              assert b"DEX  GLASS" not in z.read("skin.dexglass/xml/Home.xml")
+              assert b"tvshow.clearlogo" in z.read("skin.dexglass/xml/DexGlass_Variables.xml")
+              assert b"plugin.video.dexglass.bridge" in z.read("skin.dexglass/xml/SkinSettings.xml")
+              assert "skin.dexglass/fonts/Inter-Regular.ttf" in z.namelist()
+              assert "skin.dexglass/fonts/Inter-Semibold.ttf" in z.namelist()
+              assert "skin.dexglass/fonts/Inter-OFL.txt" in z.namelist()
               assert "skin.dexglass/media/dexglass/tile-glow.png" in z.namelist()
               assert all("skin.dexglass/media/dexglass/icon-"+i+".png" in z.namelist() for i in ("search","settings","power"))
               deps=skin.findall("requires/import")
               assert any(d.get("addon")=="plugin.video.dexglass.bridge" for d in deps)
               print("Original seven-row Kodi Home validated")
-          with zipfile.ZipFile(io.BytesIO(responses["plugin.video.dexglass.bridge-0.1.0.zip"])) as z:
+          with zipfile.ZipFile(io.BytesIO(responses["plugin.video.dexglass.bridge-0.2.0.zip"])) as z:
               assert z.testzip() is None
               assert ET.fromstring(z.read("plugin.video.dexglass.bridge/addon.xml")).get("id")=="plugin.video.dexglass.bridge"
               assert "plugin.video.dexglass.bridge/default.py" in z.namelist()
+              assert "plugin.video.dexglass.bridge/custom_collections.py" in z.namelist()
           index=responses[""].decode("utf8")
-          assert '<a href="repository.dexglass-1.0.4.zip">repository.dexglass-1.0.4.zip</a>' in index
-          assert '<a href="plugin.video.dexglass.bridge-0.1.0.zip">plugin.video.dexglass.bridge-0.1.0.zip</a>' in index
+          assert '<a href="repository.dexglass-1.0.5.zip">repository.dexglass-1.0.5.zip</a>' in index
+          assert '<a href="plugin.video.dexglass.bridge-0.2.0.zip">plugin.video.dexglass.bridge-0.2.0.zip</a>' in index
           print("Live installer URLs, three add-ons and repository metadata: PASS")
           PY
