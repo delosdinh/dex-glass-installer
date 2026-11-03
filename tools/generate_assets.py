@@ -125,6 +125,58 @@ def tile_edge(x,y,w=512,h=320):
     alpha=int(175*a*edge+65*a*top)
     return 230,248,255,min(235,alpha)
 
+
+def _segment_distance(px,py,ax,ay,bx,by):
+    vx,vy=bx-ax,by-ay
+    u=max(0,min(1,((px-ax)*vx+(py-ay)*vy)/max(.001,vx*vx+vy*vy)))
+    return math.hypot(px-(ax+u*vx),py-(ay+u*vy))
+
+def nav_icon(kind,x,y):
+    """Alpha-antialiased original white line artwork for Kodi's right utilities."""
+    px,py=x+0.5,y+0.5
+    cx,cy=36,36
+    d=999.
+    if kind=="search":
+        d=min(abs(math.hypot(px-31,py-30)-15), _segment_distance(px,py,42,42,56,56))
+    elif kind=="settings":
+        radial=math.hypot(px-cx,py-cy)
+        d=min(abs(radial-13), abs(radial-4.5))
+        for i in range(8):
+            angle=math.pi*i/4
+            ax,ay=cx+18*math.cos(angle),cy+18*math.sin(angle)
+            bx,by=cx+23*math.cos(angle),cy+23*math.sin(angle)
+            d=min(d,_segment_distance(px,py,ax,ay,bx,by))
+    elif kind=="power":
+        rad=math.hypot(px-36,py-39)
+        angle=math.degrees(math.atan2(py-39,px-36))
+        if not -125 < angle < -55:
+            d=abs(rad-19)
+        d=min(d,_segment_distance(px,py,36,10,36,36))
+    alpha=max(0,min(1,(3.1-d)/2.3))
+    return 240,249,255,int(245*alpha)
+
+def collections_card(which,x,y):
+    """Original restrained iridescent Kaptain/Community shortcuts."""
+    w,h=380,210
+    palettes=(
+        ((10,38,62),(14,91,125),(47,171,209)),
+        ((22,21,68),(72,55,133),(152,117,215)),
+        ((25,42,53),(37,104,89),(88,187,164)),
+        ((45,25,58),(105,57,102),(226,132,151)),
+    )
+    dark,mid,lit=palettes[which%len(palettes)]
+    t=x/(w-1)
+    base=[int(dark[i]*(1-t)+mid[i]*t) for i in range(3)]
+    halo=max(0,1-math.hypot((x-(190+which*25))/240,(y-65)/185))
+    shimmer=max(0,1-abs((x+y*.34)-(125+which*40))/45)
+    out=[min(255,int(base[i]+lit[i]*halo*.25+lit[i]*shimmer*.1)) for i in range(3)]
+    rounded=_round_alpha(x,y,w,h,22)
+    edge=max(0,1-min(x,w-1-x,y,h-1-y)/10)
+    a=int(rounded*255)
+    if edge and rounded:
+        out=[min(255,int(out[i]+55*edge)) for i in range(3)]
+    return *out,a
+
 def main():
     png(OUT / "hero-scrim.png", 1920, 1080, scrim)
     png(OUT / "fallback.png", 1920, 1080, fallback)
@@ -137,6 +189,12 @@ def main():
     png(OUT / "tile-mask-poster.png", 240, 320, lambda x,y:tile_mask(x,y,240,320))
     png(OUT / "tile-shade.png", 512, 320, tile_vignette)
     png(OUT / "tile-glow.png", 512, 320, tile_edge)
+    for kind in ("search", "settings", "power"):
+        png(OUT / ("icon-" + kind + ".png"), 72, 72,
+            lambda x,y,k=kind: nav_icon(k,x,y))
+    for i,key in enumerate(("kaptain","community","organise","imports")):
+        png(OUT / ("collection-" + key + ".png"),380,210,
+            lambda x,y,z=i: collections_card(z,x,y))
     print("Generated original artwork in", OUT)
 
 
