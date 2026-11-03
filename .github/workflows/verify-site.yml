@@ -54,6 +54,13 @@ jobs:
               assert z.testzip() is None
               skin=ET.fromstring(z.read("skin.dexglass/addon.xml"))
               assert skin.get("id")=="skin.dexglass"
+              assert skin.get("version")=="0.3.0"
+              home=ET.fromstring(z.read("skin.dexglass/xml/Home.xml"))
+              feeds=[e.text for e in home.iter("content") if (e.text or "").startswith("plugin://plugin.video.dexhub/")]
+              assert len(feeds)==7, feeds
+              assert "skin.dexglass/xml/DexGlass_Variables.xml" in z.namelist()
+              assert "skin.dexglass/media/dexglass/tile-glow.png" in z.namelist()
+              print("Original seven-row Kodi Home validated")
           index=responses[""].decode("utf8")
           assert '<a href="repository.dexglass-1.0.3.zip">repository.dexglass-1.0.3.zip</a>' in index
           print("Live installer URLs and repository metadata: PASS")
