@@ -1,39 +1,55 @@
 # Dex Glass Installer
 
-This is the **public Kodi installer** for [Dex Glass](https://github.com/delosdinh/dex-glass), an experimental Apple TV-inspired skin. The development repository is private. This public repository contains **only the reproducible skin builder, original asset generator, Kodi repository metadata generator, and publishing workflow**.
+A **public Kodi ZIP installer** for Dex Glass, an experimental Kodi 21/22 skin with an original tvOS-inspired home screen. The main \`delosdinh/dex-glass\` development repository stays private. This public installer contains only a reproducible skin builder, an original read-only bridge, generated Kodi artwork and publishing workflows.
 
-> **Version 0.3.0 is a **new, original Kodi home screen** with transparent glass navigation, focus-responsive cinematic artwork and seven Dex Hub plugin-powered rows; Pyrus remains only the fallback framework for other Kodi windows.** It has a separate `skin.dexglass` identity and a top-level link to the **separately installed official Dex Hub plugin**. Actual on-device CoreELEC/Kodi 22 navigation, the exact Dex Hub row results and specialised playback/credits overlays still require on-device testing.
+## Dex Glass v0.4.0 — on-device issues addressed
 
-## Direct Kodi installation
+Based on the owner's successful v0.3 installation and screenshot:
 
-Once the automated deployment is successful, the public landing page is intended to be:
+- **Top-right toolbar:** Search, Settings and Power have actual custom PNG icons rather than squeezed text. Their Kodi actions remain intact.
+- **Continue Watching Movies / Episodes:** the official Dex Hub public \`?action=continue\` listing does **not** filter on \`media=movie\`/ \`media=series\`; a small, separate \`plugin.video.dexglass.bridge\` asks Kodi JSON-RPC for that listing and splits films and episodes using media-type metadata. Unknown types stay out of both rows rather than being misfiled. This bridge is **experimental and not confirmed on the device yet**.
+- **Dex Collections:** \`?action=collection_sets\` returns a custom interface, not poster items. The row now has focusable Kodi cards for **Kaptain / Dex Collection**, Dex Community, arranging home rows and importing collections, opening Dex Hub's **supported native \`?action=home_community\`** route. These are *navigation shortcuts*, not a copy of the Kaptain catalogs or full widget rails.
 
-**https://delosdinh.github.io/dex-glass-installer/**
+The cinematic hero, seven section names and original \`Home.xml\` from v0.3 are preserved. **Full Dex Hub custom playback overlays, editable row builder, complete cast/crew detail pages and native Apple tvOS physical light refraction are not implemented.** Pyrus/Estuary remains the compatibility base for secondary Kodi screens.
 
-1. In Kodi: **Settings → File Manager → Add source**.
-2. Enter the published URL, name it **Dex Glass**, and save.
-3. Navigate to **Add-ons → Install from ZIP file → Dex Glass**.
-4. Install `repository.dexglass-1.0.3.zip` (replaces previous repository packages).
-5. Choose **Install from repository → Dex Glass Repository → Look and feel → Skin → Dex Glass (Preview)**.
+## Installation on CoreELEC (no repository catalogue required)
 
-The Kodi repository catalogue has previously failed on the user's CoreELEC setup even though HTTPS files were accessible. If this happens, choose **Add-ons → Install from ZIP file → Dex Glass → `skin.dexglass-0.3.0.zip`** instead of Install from repository. The device remains the compatibility test.
+Use the **public installer URL** already added to Kodi File Manager:
 
-The site also provides direct links to the **repository ZIP** and **skin ZIP**, plus `addons.xml` for repository metadata updates.
+https://delosdinh.github.io/dex-glass-installer/
 
-## Publishing
+The Kodi **Install from repository** catalogue has failed on this user's device. Bypass it:
 
-GitHub Actions workflow: [Publish Dex Glass Kodi installer](.github/workflows/publish.yml).
+1. Open **Kodi → Add-ons → Install from ZIP file → Dex Glass**.
+2. Select **\`plugin.video.dexglass.bridge-0.1.0.zip\`** and install the small companion add-on **first**.
+3. Return to the **Dex Glass** ZIP file source and install **\`skin.dexglass-0.4.0.zip\`**.
+4. Keep the existing official Dex Hub installed. Go to **Settings → Interface → Skin → Dex Glass (Preview)**, if Kodi has not switched automatically.
 
-For first-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**, then **Actions → Publish Dex Glass Kodi installer → Run workflow** (if a push has not already triggered it). If publishing fails, inspect the workflow log rather than assuming the page exists.
+Both ZIPs are also linked at the public installer web page. Do **not** extract them.
 
-The workflow fetches a pinned official Pyrus v1.1.6 release ZIP and validates its SHA-256. It **replaces the whole Home.xml** with an original cinematic, seven-row Kodi home (see `build/real_home.py`), retains Pyrus only as a foundation for Kodi's secondary windows, adds original glass textures, then assembles and publishes the Kodi repository and ZIP.
+The bridge is an independent Kodi plug-in. It does not change or ship Dex Hub's Python files, artwork, accounts, authentication data or settings. It calls Kodi's own \`Files.GetDirectory\` API to request public plugin listings from the user's installed official Dex Hub.
 
-Do not put any personal API keys, account credentials, or the private repository's contents into this public repository.
+If Kodi cannot classify an item, the row may show a shortcut to the original Dex Hub Continue Watching list. This is preferable to putting the same series into the films shelf.
+
+### Troubleshooting
+
+If v0.4's two Continue Watching rows are empty, inspect \`kodi.log\` for \`[DexGlassBridge]\`: it logs **media counts and error classes only**, never titles or streaming credentials. Kodi 22's JSON-RPC behaviour varies between platform builds and has not been directly tested on the owner's CoreELEC device.
+
+If any window fails, revert via **Settings → Interface → Skin → previous skin**. The installed official Dex Hub itself remains unchanged.
+
+## Build / publication
+
+The GitHub Actions workflow [.github/workflows/publish.yml](.github/workflows/publish.yml) pins the official Pyrus v1.1.6 release by SHA-256, rebuilds Kodi \`skin.dexglass\` from an **original Home.xml** ([build/real_home.py](build/real_home.py)) and original PNG assets, packages the original bridge from [bridge/default.py](bridge/default.py), and assembles Kodi \`addons.xml\` and both ZIPs on GitHub Pages.
+
+The Kodi repository package \`repository.dexglass-1.0.4.zip\` is also published, but direct ZIP installation is preferred until repository browsing works on-device.
+
+Keep passwords and personal API tokens out of this public repository.
 
 ## Licence and credits
 
-- [Pyrus/Applify](https://github.com/kamilfotoveci-design/applify) by kamilwhoo — upstream Kodi skin source. It incorporates Team Kodi's Estuary. The distributable ZIP preserves Pyrus's upstream `LICENSE` and `NOTICE.txt`, including GPLv2 code, CC BY-SA artwork and third-party font notices.
-- The build intentionally excludes **Apple SF Pro font binaries** and substitutes **OrchardUI** open-licensed fonts already supplied by Pyrus. No Apple proprietary UI assets are committed or redistributed here.
-- [Dex Hub](https://github.com/6ahd/plugin.video.dexhub) © DexWorld/6ahd — **separate, proprietary video add-on, not included in this repository or installer**. Install Dex Hub through official sources. This project makes no claim of authorisation from DexWorld.
+- [Pyrus / Applify](https://github.com/kamilfotoveci-design/applify) by kamilwhoo, incorporating Kodi Estuary. The skin ZIP includes upstream GPLv2, CC BY-SA and font notices, which must be retained.
+- Apple SF Pro proprietary binaries are intentionally **excluded** from the redistributed skin ZIP and replaced by the open-licensed OrchardUI files already supplied upstream.
+- [Dex Hub](https://github.com/6ahd/plugin.video.dexhub) is a separate proprietary plugin © 6ahd / DexWorld. It is **not** bundled or modified. Users install it through official channels. This installer is not affiliated with DexWorld.
+- The original \`plugin.video.dexglass.bridge\` code is published under MIT, independent of Dex Hub.
 
-This is an independent, personal experimental project. Not affiliated with Apple, Kodi, Pyrus, or DexWorld.
+This is an independent experimental project, unaffiliated with Apple, Team Kodi, Pyrus or DexWorld.
