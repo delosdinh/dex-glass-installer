@@ -165,7 +165,32 @@ def shelf(parent, index, title, query, shape):
     el(view,"onback","SetFocus(1001)")
     tile(view,card_width,card_height,poster=poster,focused=False)
     tile(view,card_width,card_height,poster=poster,focused=True)
-    el(view,"content",DEX+"?"+query,target="videos",limit="30",browse="never")
+    if query == "collections:static":
+        # Dex Hub's collection_sets opens its custom interface and does not
+        # provide Kodi poster items. Launch the official Kaptain/Community
+        # screen from static, focusable collection cards instead.
+        content=el(view,"content")
+        shortcuts=(
+            ("Kaptain / Dex Collection", "Browse the prebuilt collection", "kaptain",
+             "RunPlugin(plugin://plugin.video.dexhub/?action=home_community)"),
+            ("Dex Community", "Browse community groups and folders", "community",
+             "RunPlugin(plugin://plugin.video.dexhub/?action=home_community)"),
+            ("Organise Home Rows", "Arrange your collections in Dex Hub", "organise",
+             "RunPlugin(plugin://plugin.video.dexhub/?action=home_layout)"),
+            ("Import Collections", "Manage and add collection sources", "imports",
+             "RunPlugin(plugin://plugin.video.dexhub/?action=home_community)"),
+        )
+        for k,(name,subtitle,art,action) in enumerate(shortcuts,1):
+            item=el(content,"item",id=k)
+            el(item,"label",name)
+            el(item,"label2",subtitle)
+            el(item,"thumb","special://skin/media/dexglass/collection-"+art+".png")
+            el(item,"onclick",action)
+    elif query.startswith("bridge:"):
+        el(view,"content",BRIDGE+"?media="+query.split(":",1)[1],
+           target="videos",limit="30",browse="never")
+    else:
+        el(view,"content",DEX+"?"+query,target="videos",limit="30",browse="never")
     return wrapper
 
 
@@ -226,7 +251,8 @@ def create_home():
     for k,(ident,x,w,text,action) in enumerate(navigation):
         pill_button(controls,ident,x,45,w,text,action,
                     left=navigation[k-1][0] if k else 1008,
-                    right=navigation[k+1][0] if k<len(navigation)-1 else 1001)
+                    right=navigation[k+1][0] if k<len(navigation)-1 else 1001,
+                    icon={1006:"search",1007:"settings",1008:"power"}.get(ident))
     # Hero title supports optional clearlogo supplied by Dex Hub, then text.
     image(controls,86,220,750,176,"$VAR[DG_Clearlogo]",aspect="keep",
           visible="!String.IsEmpty($VAR[DG_Clearlogo])",fade=200)
@@ -273,8 +299,17 @@ def check_home(data):
     ids={n.attrib.get("id") for n in root.iter("control") if n.attrib.get("id")}
     expected={str(i) for i in IDS}
     if not expected.issubset(ids):raise ValueError("Missing one or more Dex Hub shelves")
-    paths=[n.text for n in root.iter("content") if n.text and DEX in n.text]
-    if len(paths)!=7:raise ValueError(f"Expected 7 live Dex Hub rows, found {len(paths)}")
+    paths=[n.text for n in root.iter("content") if n.text and
+           (DEX in n.text or BRIDGE in n.text)]
+    if len(paths)!=6:raise ValueError(f"Expected 6 live rows and 1 static collection, found {len(paths)}")
+    bridges=[p for p in paths if p.startswith(BRIDGE)]
+    if len(bridges)!=2:raise ValueError("Expected separate film and episode feeds")
+    items=[n for n in root.iter("item") if n.find("onclick") is not None]
+    if len(items)<3:raise ValueError("Kaptain/Community shortcuts are missing")
+    if not any("home_community" in (x.findtext("onclick") or "") for x in items):
+        raise ValueError("Kaptain collection browser is not linked")
+    utility_icons=[n.text for n in root.iter("texture") if (n.text or "").startswith("dexglass/icon-")]
+    if len(utility_icons)!=3:raise ValueError("Top-right icon artwork missing")
     fanart=[n for n in root.iter("texture") if n.text=="$VAR[DG_Fanart]"]
     if not fanart:raise ValueError("No cinematic full-screen fanart")
     return True
