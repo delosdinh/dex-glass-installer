@@ -9,7 +9,7 @@ import re
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
-from liquid_glass import style_home
+from real_home import create_home, create_variables, patch_includes, check_home
 
 URL = "https://github.com/kamilfotoveci-design/applify/releases/download/v1.1.6/skin.applify-1.1.6.zip"
 EXPECTED = "2e36befee29fa4f904f7a4e27d85779a504e23a963c646224019dc98e6a7cd9c"
@@ -34,7 +34,7 @@ def addon_xml(data):
         raise ValueError("Not the expected Pyrus skin")
     element.attrib.update({"id":"skin.dexglass",
                            "name":"Dex Glass (Preview)",
-                           "version":"0.2.0",
+                           "version":"0.3.0",
                            "provider-name":"Dex Glass; based on Pyrus by kamilwhoo"})
     meta = element.find("extension[@point='xbmc.addon.metadata']")
     if meta is not None:
@@ -80,39 +80,45 @@ def build(source, dest, assets):
             elif name == "resources/home_hubs.py":
                 data = home_hubs(data)
             elif name == "xml/Home.xml":
-                data = style_home(data)
+                data = create_home()
+            elif name == "xml/Includes.xml":
+                data = patch_includes(data)
             elif name == "xml/Font.xml":
                 data = data.replace(b"sf-pro-display-regular.ttf", b"OrchardUI-Regular.ttf")
                 data = data.replace(b"sf-pro-display-semibold.ttf", b"OrchardUI-Semibold.ttf")
             if Path(name).suffix.lower() in TEXT_TYPES and name not in ("addon.xml", "resources/package-sha256.json"):
                 data = data.replace(b"skin.applify", b"skin.dexglass")
             files[name] = data
+    files["xml/DexGlass_Variables.xml"] = create_variables()
     required = ["addon.xml","xml/Home.xml","xml/Font.xml","resources/home_hubs.py",
                 "LICENSE","NOTICE.txt","fonts/OrchardUI-Regular.ttf","fonts/OrchardUI-Semibold.ttf"]
     missing = [name for name in required if name not in files]
     if missing:
         raise ValueError("Missing source files: " + ", ".join(missing))
+    check_home(files["xml/Home.xml"])
     if assets.is_dir():
         count = 0
         for asset in assets.rglob("*.png"):
             files["media/dexglass/" + asset.relative_to(assets).as_posix()] = asset.read_bytes()
             count += 1
         print("Included original Dex Glass assets:", count)
-    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass preview 0.2.0
+    files["DEXGLASS-INTEGRATION.md"] = b"""# Dex Glass original Home preview v0.3.0
 
-Based on Pyrus v1.1.6 by kamilwhoo and Estuary/Team Kodi.
-Pyrus/Estuary licences and notices are preserved. Apple SF Pro font
-binaries have been excluded and OFL-licensed OrchardUI substituted.
+Kodi Home.xml has been replaced with a newly authored 1920x1080 TV interface:
+a centred clear-glass navigation menu, full-screen focus-responsive fanart,
+and seven horizontal Dex Hub plugin-fed rails in the requested order.
+The original Pyrus Home.xml has NOT been reused. Other Kodi windows and
+fonts remain based on the Pyrus/Estuary framework, with licences preserved.
 
-The Add-ons hub in this experimental skin now opens the separately
-installed official Dex Hub plugin at plugin://plugin.video.dexhub/.
-This does not embed or modify any Dex Hub code or service.
+The plugin URLs are public entrypoints of the separately installed official
+Dex Hub add-on; no Dex Hub source, assets, credentials, or authentication are
+included in this package. Film/episode details and playback actions are
+provided by the official add-on when its native list items are selected.
 
-This preview adds real Kodi Liquid Lens navigation assets.\nReal Dex Hub homepage rows,
-detail pages, full optical Liquid Glass shaders, playback overlays and
-CoreELEC-specific integration are not yet implemented/tested.
-The first goal is to verify independent skin installation and launcher.
-You can always switch back using Kodi Settings > Interface > Skin.
+Unverified: whether Dex Hub returns the correct separated media types in
+every route, remote directional navigation, item art quality, and CoreELEC
+device playback. Do not rely on this build as a full replacement yet.
+For fallback use Settings > Interface > Skin to restore your previous skin.
 """
     # Pyrus diagnostics reference this manifest; recalculate for modified files.
     manifest_name = "resources/package-sha256.json"
@@ -134,12 +140,15 @@ You can always switch back using Kodi Settings > Interface > Skin.
         root = ET.fromstring(check.read("skin.dexglass/addon.xml"))
         assert root.attrib["id"] == "skin.dexglass"
         assert "skin.dexglass/fonts/sf-pro-display-regular.ttf" not in check.namelist()
+        check_home(check.read("skin.dexglass/xml/Home.xml"))
+        assert "skin.dexglass/xml/DexGlass_Variables.xml" in check.namelist()
+        assert ET.fromstring(check.read("skin.dexglass/xml/Includes.xml")).find("include[@file='DexGlass_Variables.xml']") is not None
     print(f"Built {dest} ({dest.stat().st_size:,} bytes, {len(files)} files)")
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", help="Local official Pyrus v1.1.6 ZIP; optional in GitHub Actions")
-    parser.add_argument("--output", default="dist/skin.dexglass-0.2.0.zip")
+    parser.add_argument("--output", default="dist/skin.dexglass-0.3.0.zip")
     parser.add_argument("--assets", default="build/media/dexglass")
     args = parser.parse_args()
     build(source_zip(args.source), Path(args.output), Path(args.assets))
