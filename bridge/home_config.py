@@ -13,8 +13,8 @@ from urllib.parse import parse_qs, urlparse
 import xbmc
 import xbmcgui
 
-PAGES=("watch","movies","tv")
-PAGE_NAMES={"watch":"Watch Now","movies":"Movies","tv":"TV Shows"}
+PAGES=("watch","movies","tv","collections")
+PAGE_NAMES={"watch":"Watch Now","movies":"Movies","tv":"TV Shows","collections":"Collections"}
 SLOTS=12
 SKIN="skin.dexglass"
 PRESETS={
@@ -30,7 +30,8 @@ DEFAULTS={
  "watch":["continue_movies","recent_movies","continue_episodes","next_episodes",
           "recent_series","recommended_movies","collections"],
  "movies":["continue_movies","recent_movies","recommended_movies","collections"],
- "tv":["continue_episodes","next_episodes","recent_series","collections"]
+ "tv":["continue_episodes","next_episodes","recent_series","collections"],
+ "collections":["collections"]
 }
 
 
