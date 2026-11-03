@@ -177,6 +177,16 @@ def collections_card(which,x,y):
         out=[min(255,int(out[i]+55*edge)) for i in range(3)]
     return *out,a
 
+
+def nav_fine_focus(x,y):
+    """A thin luminous tvOS-style focus underline, not an opaque lens pill."""
+    w,h=240,10
+    rel=abs(x-(w-1)/2)/((w-1)/2)
+    taper=max(0,1-rel**2)**1.8
+    vertical=max(0,1-abs(y-4.5)/5)
+    a=int(195*taper*vertical)
+    return 229,248,255,a
+
 def main():
     png(OUT / "hero-scrim.png", 1920, 1080, scrim)
     png(OUT / "fallback.png", 1920, 1080, fallback)
@@ -195,6 +205,7 @@ def main():
     for i,key in enumerate(("kaptain","community","organise","imports")):
         png(OUT / ("collection-" + key + ".png"),380,210,
             lambda x,y,z=i: collections_card(z,x,y))
+    png(OUT / "nav-fine-focus.png",240,10,nav_fine_focus)
     print("Generated original artwork in", OUT)
 
 
